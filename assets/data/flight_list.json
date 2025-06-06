@@ -1,0 +1,42 @@
+{
+  "flights_list": [
+    {
+      "from": {
+        "code": "NYC",
+        "name": "New York"
+      },
+      "to": {
+        "code": "LDN",
+        "name": "London"
+      },
+      "flying_time": "19:00",
+      "flying_date": "June 07, 2023",
+      "departure_date": "June 08, 2023",
+      "departure_time": "01:30",
+      "number": 23,
+      "duration": "06h 30m",
+      "airlines_name": "American Airlines",
+      "price": 160.00,
+      "logo_url": "https://i.ibb.co/MS24gC4/Ellipse.png"
+    },
+    {
+      "from": {
+        "code": "NYC",
+        "name": "New York"
+      },
+      "to": {
+        "code": "LDN",
+        "name": "London"
+      },
+      "flying_time": "19:00",
+      "flying_date": "June 07, 2023",
+      "departure_date": "June 08, 2023",
+      "departure_time": "02:00",
+      "number": 23,
+      "duration": "07h 00m",
+      "price": 140.00,
+      "airlines_name": "Lufthansa Airlines",
+      "logo_url": "https://i.ibb.co/rmjLKhk/Ellipse-1.png"
+    }
+  ]
+}

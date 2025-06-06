@@ -1,0 +1,55 @@
+{
+
+    "seat_list":[
+      {
+        "seat_number": "A1",
+        "booking_Status": true
+      },{
+        "seat_number": "A2",
+        "booking_Status": true
+      },{
+        "seat_number": "A3",
+        "booking_Status": true
+      },{
+        "seat_number": "A4",
+        "booking_Status": true
+      },{
+        "seat_number": "A5",
+        "booking_Status": false
+      },{
+        "seat_number": "A6",
+        "booking_Status": false
+      },{
+        "seat_number": "A7",
+        "booking_Status": true
+      },{
+        "seat_number": "A8",
+        "booking_Status": true
+      },{
+        "seat_number": "A9",
+        "booking_Status": true
+      },{
+        "seat_number": "A10",
+        "booking_Status": true
+      },{
+        "seat_number": "A11",
+        "booking_Status": false
+      },{
+        "seat_number": "A12",
+        "booking_Status": true
+      },{
+        "seat_number": "A13",
+        "booking_Status": true
+      },{
+        "seat_number": "A14",
+        "booking_Status": true
+      },{
+        "seat_number": "A15",
+        "booking_Status": true
+      },{
+        "seat_number": "A16",
+        "booking_Status": true
+      }
+  ]
+
+}

@@ -1,0 +1,148 @@
+{
+  "hotels": [
+    {
+      "id": 1,
+      "name": "Ca Dalisera B&B Venezia",
+      "image": "https://i.ibb.co/G0r9gyF/maxresdefault.jpg",
+      "price": "$100",
+      "location": "Calle del Ridotto, 1386, 30124 Venezia VE, Italy",
+      "rating": 3.5,
+      "review": "3.9K Reviews",
+      "full_details": "The Lind Boracay resort has its own train station and can be reached from either lau spezia or levantonipo. From la spezia, take the local train trendo regionale in the direction of sestrin levante and get off at the first stop. From levanto, take the regional train in direction of la spezia centrale.",
+      "images": [
+        {
+          "url": "https://i.ibb.co/vwDLgfW/2020-11-09.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/wcGhH0q/ca-dalisera-venice-b-1.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/SJwXcPw/ca-dalisera-venice-b.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/vwDLgfW/2020-11-09.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/mX6kDpP/download-1.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/B3YWVMC/download-2.jpg"
+        }
+      ],
+      "facility": [
+        {
+          "name": "2 Bedroom",
+          "icon": "https://i.ibb.co/jZW7pbB/000000ff.png"
+        },
+        {
+          "name": "Food",
+          "icon": "https://i.ibb.co/2FhtfVL/000000ff.png"
+        },
+        {
+          "name": "Car Parking",
+          "icon": "https://i.ibb.co/zGwRwXK/000000ff.png"
+        },
+        {
+          "name": "Gym",
+          "icon": "https://i.ibb.co/xsqLhwg/000000ff.png"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Venice Michelangelo Hotel",
+      "image": "https://i.ibb.co/52Jzmz9/download-4.jpg",
+      "price": "$100",
+      "location": "Via Forte Marghera, 69, 30173 Venezia VE, Italy",
+      "rating": 5.0,
+      "review": "3.9K Reviews",
+      "full_details": "The Lind Boracay resort has its own train station and can be reached from either lau spezia or levantonipo. From la spezia, take the local train trendo regionale in the direction of sestrin levante and get off at the first stop. From levanto, take the regional train in direction of la spezia centrale.",
+      "images": [
+        {
+          "url": "https://i.ibb.co/S0ZvgK4/images-5.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/phH85sF/download-5.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/52Jzmz9/download-4.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/02rktV0/images-4.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/VMc95pm/download-3.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/0YGnFP3/images.jpg"
+        }
+      ],
+      "facility": [
+        {
+          "name": "2 Bedroom",
+          "icon": "https://i.ibb.co/jZW7pbB/000000ff.png"
+        },
+        {
+          "name": "Food",
+          "icon": "https://i.ibb.co/2FhtfVL/000000ff.png"
+        },
+        {
+          "name": "Car Parking",
+          "icon": "https://i.ibb.co/zGwRwXK/000000ff.png"
+        },
+        {
+          "name": "Gym",
+          "icon": "https://i.ibb.co/xsqLhwg/000000ff.png"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Anda Venice Hostel",
+      "image": "https://i.ibb.co/0JNSbq4/expediav2-3557996-791d1c-714095.jpg",
+      "price": "$100",
+      "location": "Città del Vaticano, Vatican City",
+      "rating": 4.5,
+      "review": "3.9K Reviews",
+      "full_details": "The Lind Boracay resort has its own train station and can be reached from either lau spezia or levantonipo. From la spezia, take the local train trendo regionale in the direction of sestrin levante and get off at the first stop. From levanto, take the regional train in direction of la spezia centrale.",
+      "images": [
+        {
+          "url": "https://i.ibb.co/0JNSbq4/expediav2-3557996-791d1c-714095.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/wcGhH0q/ca-dalisera-venice-b-1.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/SJwXcPw/ca-dalisera-venice-b.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/vwDLgfW/2020-11-09.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/mX6kDpP/download-1.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/B3YWVMC/download-2.jpg"
+        }
+      ],
+      "facility": [
+        {
+          "name": "2 Bedroom",
+          "icon": "https://i.ibb.co/jZW7pbB/000000ff.png"
+        },
+        {
+          "name": "Food",
+          "icon": "https://i.ibb.co/2FhtfVL/000000ff.png"
+        },
+        {
+          "name": "Car Parking",
+          "icon": "https://i.ibb.co/zGwRwXK/000000ff.png"
+        },
+        {
+          "name": "Gym",
+          "icon": "https://i.ibb.co/xsqLhwg/000000ff.png"
+        }
+      ]
+    }
+  ]
+}

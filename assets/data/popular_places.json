@@ -1,0 +1,145 @@
+{
+  "places": [
+    {
+      "id": 1,
+      "name": "Grand Canal in Venice",
+      "image": "https://i.ibb.co/G0r9gyF/maxresdefault.jpg",
+      "price": "$100",
+      "location": "Venecia, Véneto, Italia",
+      "rating": 3.5,
+      "review": "3.9K Reviews",
+      "full_details": "The Lind Boracay resort has its own train station and can be reached from either lau spezia or levantonipo. From la spezia, take the local train trendo regionale in the direction of sestrin levante and get off at the first stop. From levanto, take the regional train in direction of la spezia centrale.",
+      "images": [
+        {
+          "url": "https://i.ibb.co/R4PM33B/IMG-20191010-122215.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/N935zvx/1569323297894.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/VwwpFjm/download-1.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/N935zvx/1569323297894.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/X7HjF3T/1958491-wonderland-resort-image-16-KF3q-Sd.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/TM65xNG/90abe31e74dd11e6b4370022195573b9.jpgō"
+        }
+      ],
+      "Reviews": [
+        {
+          "profile_url": "https://i.ibb.co/RP3hBV7/portrait-white-man-isolated-53876-40306.jpg",
+          "review": "1k",
+          "rating": 5.0
+        },
+        {
+          "profile_url": "https://i.ibb.co/mH2FsCT/images.jpg",
+          "review": "2k",
+          "rating": 4.8
+        },
+        {
+          "profile_url": "https://i.ibb.co/Kzcgt51/8bfda32f-0b52-4238-b990-f98a99eef9bb.png",
+          "review": "2k",
+          "rating": 3.2
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "The Great Bridge",
+      "image": "https://i.ibb.co/s6zVL5h/istockphoto-477214195-612x612.jpg",
+      "price": "$100",
+      "location": "London, United Kingdom",
+      "rating": 5.0,
+      "review": "3.9K Reviews",
+      "full_details": "The Lind Boracay resort has its own train station and can be reached from either lau spezia or levantonipo. From la spezia, take the local train trendo regionale in the direction of sestrin levante and get off at the first stop. From levanto, take the regional train in direction of la spezia centrale.",
+      "images": [
+        {
+          "url": "https://i.ibb.co/R4PM33B/IMG-20191010-122215.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/N935zvx/1569323297894.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/VwwpFjm/download-1.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/N935zvx/1569323297894.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/X7HjF3T/1958491-wonderland-resort-image-16-KF3q-Sd.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/TM65xNG/90abe31e74dd11e6b4370022195573b9.jpgō"
+        }
+      ],
+      "Reviews": [
+        {
+          "profile_url": "https://i.ibb.co/RP3hBV7/portrait-white-man-isolated-53876-40306.jpg",
+          "review": "1k",
+          "rating": 5.0
+        },
+        {
+          "profile_url": "https://i.ibb.co/mH2FsCT/images.jpg",
+          "review": "2k",
+          "rating": 4.8
+        },
+        {
+          "profile_url": "https://i.ibb.co/Kzcgt51/8bfda32f-0b52-4238-b990-f98a99eef9bb.png",
+          "review": "2k",
+          "rating": 3.2
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "The Golden City",
+      "image": "https://i.ibb.co/BVBF4sN/70c7e9051c3411a0653fa26b23c7bd6c-history-of-Vatican-City.jpg",
+      "price": "$100",
+      "location": "Città del Vaticano, Vatican City",
+      "rating": 4.5,
+      "review": "3.9K Reviews",
+      "full_details": "The Lind Boracay resort has its own train station and can be reached from either lau spezia or levantonipo. From la spezia, take the local train trendo regionale in the direction of sestrin levante and get off at the first stop. From levanto, take the regional train in direction of la spezia centrale.",
+      "images": [
+        {
+          "url": "https://i.ibb.co/R4PM33B/IMG-20191010-122215.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/N935zvx/1569323297894.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/VwwpFjm/download-1.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/N935zvx/1569323297894.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/X7HjF3T/1958491-wonderland-resort-image-16-KF3q-Sd.jpg"
+        },
+        {
+          "url": "https://i.ibb.co/TM65xNG/90abe31e74dd11e6b4370022195573b9.jpgō"
+        }
+      ],
+      "Reviews": [
+        {
+          "profile_url": "https://i.ibb.co/RP3hBV7/portrait-white-man-isolated-53876-40306.jpg",
+          "review": "1k",
+          "rating": 5.0
+        },
+        {
+          "profile_url": "https://i.ibb.co/mH2FsCT/images.jpg",
+          "review": "2k",
+          "rating": 4.8
+        },
+        {
+          "profile_url": "https://i.ibb.co/Kzcgt51/8bfda32f-0b52-4238-b990-f98a99eef9bb.png",
+          "review": "2k",
+          "rating": 3.2
+        }
+      ]
+    }
+  ]
+}

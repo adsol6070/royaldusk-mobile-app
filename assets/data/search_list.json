@@ -1,0 +1,49 @@
+{
+  "searches": [
+    {
+      "id": 1,
+      "name": "Ca Dalisera B&B Venezia",
+      "image": "https://i.ibb.co/G0r9gyF/maxresdefault.jpg",
+      "price": "$100",
+      "location": "Venezia VE, Italy",
+      "rating": 3.5,
+      "review": "3.9K Reviews"
+    },
+    {
+      "id": 2,
+      "name": "Venice Michelangelo Hotel",
+      "image": "https://i.ibb.co/52Jzmz9/download-4.jpg",
+      "price": "$100",
+      "location": "Via Forte, Italy",
+      "rating": 5.0,
+      "review": "3.9K Reviews"
+    },
+    {
+      "id": 3,
+      "name": "Anda Venice Hostel",
+      "image": "https://i.ibb.co/0JNSbq4/expediav2-3557996-791d1c-714095.jpg",
+      "price": "$100",
+      "location": "Città del Vaticano, Vatican City",
+      "rating": 4.5,
+      "review": "3.9K Reviews"
+    },
+    {
+      "id": 4,
+      "name": "The Blue House",
+      "image": "https://i.ibb.co/rspHmCJ/swimming-pool-74190-2104.jpg",
+      "price": "$100",
+      "location": "London, England",
+      "rating": 3.5,
+      "review": "3.9K Reviews"
+    },
+    {
+      "id": 5,
+      "name": "Apanemo Resort",
+      "image": "https://i.ibb.co/tQcg7Bg/pexels-thorsten-technoman-338504.jpg",
+      "price": "$100",
+      "location": "Lisbon, Portugal",
+      "rating": 5.0,
+      "review": "3.9K Reviews"
+    }
+  ]
+}
