@@ -1,5 +1,4 @@
-import 'package:credit_card_scanner/credit_card_scanner.dart';
-
+import 'package:card_scanner/card_scanner.dart';
 import 'package:get/get.dart';
 import '../controller/theme_controller.dart';
 

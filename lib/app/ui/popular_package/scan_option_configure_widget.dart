@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:credit_card_scanner/credit_card_scanner.dart';
+import 'package:card_scanner/card_scanner.dart';
 
 class OptionConfigureWidget extends StatefulWidget {
   final void Function(CardScanOptions scanOptions) onScanOptionChanged;
