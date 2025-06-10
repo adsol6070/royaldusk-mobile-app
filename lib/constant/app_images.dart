@@ -1,5 +1,5 @@
 const phoneImg = "assets/app_ic_phone.svg";
-const appLogo = "assets/app_logo.svg";
+const appLogo = "assets/R_logo.svg";
 const welcomeBg = "assets/welcome_bg.png";
 const smsIcon = "assets/sms.svg";
 const googleIcon = "assets/google_icon.svg";
