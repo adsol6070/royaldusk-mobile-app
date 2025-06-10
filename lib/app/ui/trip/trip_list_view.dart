@@ -9,8 +9,6 @@ import '../../../constant/app_colors.dart';
 import '../../../constant/app_images.dart';
 import '../../model/popular_packages.dart';
 
-
-
 class TripListView extends StatelessWidget {
   final PopularPackage popularPackage;
 
@@ -51,7 +49,7 @@ class TripListView extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(15.0),
                   child: commonCacheImageWidget(
-                      popularPackage.image.toString(), 200),
+                      popularPackage.imageUrl.toString(), 200),
                 ),
               ),
               Container(
@@ -79,8 +77,8 @@ class TripListView extends StatelessWidget {
                         width: 15,
                       ),
                       5.width,
-                      Text(
-                        popularPackage.rating.toString(),
+                      const Text(
+                        "5.0",
                       )
                     ]),
                   ),
@@ -111,7 +109,7 @@ class TripListView extends StatelessWidget {
                                 fontSize: textSizeLargeMedium),
                           ),
                           Text(
-                            popularPackage.details.toString(),
+                            popularPackage.description.toString(),
                             style: const TextStyle(
                                 color: Colors.white, fontSize: textSizeSMedium),
                           ),

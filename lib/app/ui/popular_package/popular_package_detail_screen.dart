@@ -1,7 +1,7 @@
 import 'package:royaldusk_mobile_app/constant/app_colors.dart';
 import 'package:royaldusk_mobile_app/widgets/app_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+// import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,11 +15,11 @@ import '../../../widgets/custom_textview_with_icon.dart';
 import '../../../widgets/grediant_button.dart';
 import '../../controller/popular_package_detail_controller.dart';
 import '../../model/popular_packages.dart';
-import '../dashboard/category_view.dart';
+// import '../dashboard/category_view.dart';
 import 'check_availability_bottom_sheet.dart';
 import 'custom_review_rating_view.dart';
-import 'flight_details_bottom_sheet.dart';
-import 'hotel_details_bottom_sheet.dart';
+// import 'flight_details_bottom_sheet.dart';
+// import 'hotel_details_bottom_sheet.dart';
 
 class PopularPackageDetailScreen extends StatefulWidget {
   final PopularPackage popularPackage;
@@ -58,7 +58,7 @@ class PopularPackageDetailScreenState
                 SizedBox(
                   height: context.w / 1,
                   child: commonCacheImageWidget(
-                    widget.popularPackage.image,
+                    widget.popularPackage.imageUrl,
                     context.w / 1,
                     fit: BoxFit.cover,
                   ),
@@ -94,7 +94,8 @@ class PopularPackageDetailScreenState
                             children: <Widget>[
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: <Widget>[
                                   Flexible(
                                     child: Text(
@@ -124,20 +125,22 @@ class PopularPackageDetailScreenState
                               ),
                               10.height,
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: CustomTextViewWithIcon(
                                         fontWeight: FontWeight.w500,
                                         fontSize: textSizeMedium,
-                                        text: widget.popularPackage.location
+                                        text: widget.popularPackage.location.name
                                             .toString(),
                                         icon: mapIcon,
                                         isDarkMode: isDarkMode),
                                   ),
                                   CustomTextViewWithStyle(
                                     fontSize: textSizeMedium,
-                                    text1: widget.popularPackage.price.toString(),
+                                    text1:
+                                        widget.popularPackage.price.toString(),
                                     text2: person,
                                     isDarkMode: isDarkMode,
                                     fontWeight: FontWeight.w500,
@@ -150,9 +153,9 @@ class PopularPackageDetailScreenState
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   CustomReviewRatingViewScreen(
-                                      reviewList:
-                                          widget.popularPackage.reviewList,
-                                      ratting: widget.popularPackage.rating),
+                                    reviewCount: widget.popularPackage.review,
+                                    rating: 4.7, // Or calculate dynamically
+                                  ),
                                   8.width,
                                   Row(children: [
                                     SvgPicture.asset(
@@ -161,9 +164,9 @@ class PopularPackageDetailScreenState
                                       width: 20,
                                     ),
                                     2.width,
-                                    Text(
-                                      widget.popularPackage.rating.toString(),
-                                      style: const TextStyle(
+                                    const Text(
+                                      "5.0",
+                                      style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           fontSize: textSizeMedium),
                                     ),
@@ -187,11 +190,12 @@ class PopularPackageDetailScreenState
                                 style: TextStyle(
                                     fontSize: textSizeLargeMedium,
                                     fontWeight: FontWeight.bold,
-                                    fontFamily: GoogleFonts.ubuntu().fontFamily),
+                                    fontFamily:
+                                        GoogleFonts.ubuntu().fontFamily),
                               ),
                               10.height,
                               Text(
-                                widget.popularPackage.fullDetails.toString(),
+                                widget.popularPackage.description.toString(),
                                 textAlign: TextAlign.justify,
                                 style: TextStyle(
                                     color: isDarkMode
@@ -206,86 +210,31 @@ class PopularPackageDetailScreenState
                                 style: TextStyle(
                                     fontSize: textSizeLargeMedium,
                                     fontWeight: FontWeight.bold,
-                                    fontFamily: GoogleFonts.ubuntu().fontFamily),
+                                    fontFamily:
+                                        GoogleFonts.ubuntu().fontFamily),
                               ),
                               10.height,
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  for (int i = 0;
-                                      i <
-                                          widget
-                                              .popularPackage.includedList.length;
-                                      i++)
-                                    CategoryViewScreenState(
-                                      category:
-                                          widget.popularPackage.includedList[i],
-                                      isDarkMode: isDarkMode,
-                                      onPressed: () {
-                                        switch (i) {
-                                          case 0:
-                                            FlightDetailsBottomSheet.show(
-                                                context,
-                                                widget.popularPackage.ticketList,
-                                                isDarkMode);
-                                            break;
-                                          case 1:
-                                            break;
-                                          case 2:
-                                            HotelDetailsBottomSheet.show(
-                                                context,
-                                                widget.popularPackage.hotelList,
-                                                isDarkMode);
-                                            break;
-                                          case 3:
-                                            break;
-                                        }
-                                      },
-                                    ),
-                                ],
-                              ),
                               10.height,
                               Text(
                                 imageAndVideos,
                                 style: TextStyle(
                                     fontSize: textSizeLargeMedium,
                                     fontWeight: FontWeight.bold,
-                                    fontFamily: GoogleFonts.ubuntu().fontFamily),
+                                    fontFamily:
+                                        GoogleFonts.ubuntu().fontFamily),
                               ),
                               10.height,
-                              StaggeredGrid.count(
-                                crossAxisCount: 4,
-                                mainAxisSpacing: 4,
-                                crossAxisSpacing: 4,
-                                children: [
-                                  StaggeredGridTile.count(
-                                      crossAxisCellCount: 2,
-                                      mainAxisCellCount: 2,
-                                      child: _buildRoundedImageview(widget
-                                          .popularPackage.images[0].url
-                                          .toString())),
-                                  if (widget.popularPackage.images.length > 1)
-                                    StaggeredGridTile.count(
-                                        crossAxisCellCount: 2,
-                                        mainAxisCellCount: 1,
-                                        child: _buildRoundedImageview(widget
-                                            .popularPackage.images[1].url
-                                            .toString())),
-                                  if (widget.popularPackage.images.length > 2)
-                                    StaggeredGridTile.count(
-                                        crossAxisCellCount: 1,
-                                        mainAxisCellCount: 1,
-                                        child: _buildRoundedImageview(widget
-                                            .popularPackage.images[2].url
-                                            .toString())),
-                                  if (widget.popularPackage.images.length > 3)
-                                    StaggeredGridTile.count(
-                                        crossAxisCellCount: 1,
-                                        mainAxisCellCount: 1,
-                                        child: _buildRoundedImageview(widget
-                                            .popularPackage.images[3].url
-                                            .toString()))
-                                ],
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    widget.popularPackage.imageUrl,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: 200,
+                                  ),
+                                ),
                               ),
                               20.height,
                               Container(
@@ -325,7 +274,8 @@ class PopularPackageDetailScreenState
                                 style: TextStyle(
                                     fontSize: textSizeLargeMedium,
                                     fontWeight: FontWeight.bold,
-                                    fontFamily: GoogleFonts.ubuntu().fontFamily),
+                                    fontFamily:
+                                        GoogleFonts.ubuntu().fontFamily),
                               ),
                               10.height,
                               Container(
@@ -348,7 +298,8 @@ class PopularPackageDetailScreenState
                 Container(
                   height: context.h * 0.2,
                   alignment: Alignment.topLeft,
-                  margin:  EdgeInsets.only(top:  MediaQuery.of(context).padding.top + 10, left: 16),
+                  margin: EdgeInsets.only(
+                      top: MediaQuery.of(context).padding.top + 10, left: 16),
                   child: Container(
                     width: 38,
                     height: 38,

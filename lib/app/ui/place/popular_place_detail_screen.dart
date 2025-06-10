@@ -13,7 +13,7 @@ import '../../../widgets/custom_textview_with_icon.dart';
 import '../../../widgets/grediant_button.dart';
 import '../../controller/places_detail_controller.dart';
 import '../../model/places.dart';
-import '../popular_package/custom_review_rating_view.dart';
+// import '../popular_package/custom_review_rating_view.dart';
 
 
 class PopularPlaceDetailScreen extends StatefulWidget {
@@ -149,9 +149,9 @@ class PopularPlaceDetailScreenState extends State<PopularPlaceDetailScreen> {
                                     ),
                                   ]),
                                   8.width,
-                                  CustomReviewRatingViewScreen(
-                                      reviewList: widget.places.reviewList,
-                                      ratting: widget.places.rating),
+                                  // CustomReviewRatingViewScreen(
+                                  //     reviewList: widget.places.reviewList,
+                                  //     ratting: widget.places.rating),
                                 ],
                               ),
                               10.height,

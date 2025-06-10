@@ -9,7 +9,6 @@ import '../../../constant/strings.dart';
 import '../../../widgets/custom_textview_with_diff_color.dart';
 import '../../model/popular_packages.dart';
 
-
 class TopPackagesScreen extends StatefulWidget {
   final PopularPackage popularPackage;
   final bool isDarkMode;
@@ -47,7 +46,7 @@ class TopPackagesScreenState extends State<TopPackagesScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15.0),
                 child: commonCacheImageWidget(
-                    widget.popularPackage.image.toString(), 80),
+                    widget.popularPackage.imageUrl.toString(), 80),
               ),
             ),
             8.width,
@@ -114,15 +113,15 @@ class TopPackagesScreenState extends State<TopPackagesScreen> {
                       width: 12,
                     ),
                     5.width,
-                    Text(
-                      widget.popularPackage.rating.toString(),
-                      style: const TextStyle(
+                    const Text(
+                      "4.5",
+                      style: TextStyle(
                         fontSize: textSizeSmall,
                       ),
                     ),
                     5.width,
                     Text(
-                      "(${widget.popularPackage.reviews})",
+                      "(${widget.popularPackage.review})",
                       style: TextStyle(
                           fontSize: textSizeSmall,
                           color: widget.isDarkMode

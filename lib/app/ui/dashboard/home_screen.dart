@@ -127,31 +127,31 @@ class HomeScreenState extends State<HomeScreen> {
           return Text('Error: ${snapshot.error}');
         } else {
           return Obx(
-                () => controller.topPackages.isEmpty
+            () => controller.topPackages.isEmpty
                 ? const Text(noDataAvailable)
-                :  Padding(
-                  padding: const EdgeInsets.only(right: 15.0),
-                  child: ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: controller.topPackages.length,
-                      shrinkWrap: true,
-                      scrollDirection: Axis.vertical,
-                      itemBuilder: (context, index) {
-                        PopularPackage popularPackage =
-                        controller.topPackages[index];
-                        return InkWell(
-                          child:
-                          TopPackagesScreen(popularPackage, isDarkMode),
-                          onTap: () {
-                            Get.to(
-                              PopularPackageDetailScreen(
-                                popularPackage: popularPackage,
-                              ),
-                            );
-                          },
-                        );
-                      }),
-                ),
+                : Padding(
+                    padding: const EdgeInsets.only(right: 15.0),
+                    child: ListView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: controller.topPackages.length,
+                        shrinkWrap: true,
+                        scrollDirection: Axis.vertical,
+                        itemBuilder: (context, index) {
+                          PopularPackage popularPackage =
+                              controller.topPackages[index];
+                          return InkWell(
+                            child:
+                                TopPackagesScreen(popularPackage, isDarkMode),
+                            onTap: () {
+                              Get.to(
+                                PopularPackageDetailScreen(
+                                  popularPackage: popularPackage,
+                                ),
+                              );
+                            },
+                          );
+                        }),
+                  ),
           );
         }
       },
@@ -251,15 +251,15 @@ class HomeScreenState extends State<HomeScreen> {
                     case 0:
                       controller.goToPopularPackageScreen();
                       break;
-                    case 1:
-                      controller.goToFlightScreen();
-                      break;
-                    case 2:
-                      controller.goToPopularPlacesScreen();
-                      break;
-                    case 3:
-                      controller.goToPopularHotelScreen();
-                      break;
+                    // case 1:
+                    //   controller.goToFlightScreen();
+                    //   break;
+                    // case 2:
+                    //   controller.goToPopularPlacesScreen();
+                    //   break;
+                    // case 3:
+                    //   controller.goToPopularHotelScreen();
+                    //   break;
                   }
                 },
               );
