@@ -223,9 +223,9 @@ class SignInScreenState extends State<SignInScreen> {
                         16.height,
                         GradientElevatedButton(
                             onPressed: () {
-                              // if (controller.formKey.currentState!.validate()) {
-                                controller.goToMainHomeScreen();
-                              // }
+                              if (controller.formKey.currentState!.validate()) {
+                                controller.loginUser();
+                              }
                             },
                             text: signIn),
                         24.height,
@@ -261,30 +261,30 @@ class SignInScreenState extends State<SignInScreen> {
                                 ),
                               ),
                             ),
-                            TextButton(
-                              style: iconBorderStyle,
-                              onPressed: () {},
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: IconButton(
-                                  icon: SvgPicture.asset(facebookIcon),
-                                  iconSize: iconSize,
-                                  onPressed: () {},
-                                ),
-                              ),
-                            ),
-                            TextButton(
-                              style: iconBorderStyle,
-                              onPressed: () {},
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: IconButton(
-                                  icon: SvgPicture.asset(isDarkMode ? appleWhiteIcon :appleIcon),
-                                  iconSize: iconSize,
-                                  onPressed: () {},
-                                ),
-                              ),
-                            ),
+                            // TextButton(
+                            //   style: iconBorderStyle,
+                            //   onPressed: () {},
+                            //   child: Padding(
+                            //     padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            //     child: IconButton(
+                            //       icon: SvgPicture.asset(facebookIcon),
+                            //       iconSize: iconSize,
+                            //       onPressed: () {},
+                            //     ),
+                            //   ),
+                            // ),
+                            // TextButton(
+                            //   style: iconBorderStyle,
+                            //   onPressed: () {},
+                            //   child: Padding(
+                            //     padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            //     child: IconButton(
+                            //       icon: SvgPicture.asset(isDarkMode ? appleWhiteIcon :appleIcon),
+                            //       iconSize: iconSize,
+                            //       onPressed: () {},
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
                         8.height,

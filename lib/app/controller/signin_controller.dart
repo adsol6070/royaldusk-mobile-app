@@ -2,10 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../route/my_route.dart';
 import '../controller/theme_controller.dart';
-
+import '../../httpClient/http_client.dart';
 
 class SignInController extends GetxController {
   final ThemeController themeController = Get.put(ThemeController());
+
+  final ApiClient apiClient = ApiClient();
 
   TextEditingController? emailController;
   TextEditingController? passwordController;
@@ -18,9 +20,7 @@ class SignInController extends GetxController {
 
   bool rememberMe = false;
 
-
   final formKey = GlobalKey<FormState>();
-
 
   bool? checkBoxValue = false;
 
@@ -28,7 +28,19 @@ class SignInController extends GetxController {
 
   SignInController(this.context);
 
+   @override
+  void onInit() {
+    super.onInit();
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+  }
 
+  @override
+  void onClose() {
+    emailController?.dispose();
+    passwordController?.dispose();
+    super.onClose();
+  }
 
   validate(String value) {
     if (value.length < 8) {
@@ -38,19 +50,41 @@ class SignInController extends GetxController {
     } else if (value.isEmpty) {
       return 'Please enter password';
     }
+    return null;
+  }
+
+  Future<void> loginUser() async {
+    final email = emailController?.text ?? '';
+    final password = passwordController?.text ?? '';
+
+    if (formKey.currentState?.validate() != true) return;
+
+    try {
+      final response = await apiClient.post(
+        '/user-service/api/auth/login',
+        {'email': email, 'password': password},
+      );
+
+      // final body = jsonDecode(response.body);
+      goToMainHomeScreen();
+    } catch (e) {
+      // print('Login Failed: $e');
+      Get.snackbar('Login Failed', e.toString());
+    }
   }
 
   void goToSignUpScreen() {
     Get.toNamed(MyRoutes.signup);
-
   }
 
   void goToMainHomeScreen() {
-    Get.offNamedUntil(MyRoutes.mainDrawerScreen,(route) => false,);
+    Get.offNamedUntil(
+      MyRoutes.mainDrawerScreen,
+      (route) => false,
+    );
   }
 
   void goToForgotPasswordScreen() {
     Get.toNamed(MyRoutes.resetPassword);
-
   }
 }

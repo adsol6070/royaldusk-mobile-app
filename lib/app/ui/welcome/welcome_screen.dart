@@ -80,20 +80,20 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                                     text: continueWithEmail,
                                   )),
                             ),
-                            20.height,
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width,
-                              height: 60,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                child: CustomButtonWithIcon(
-                                  icon: facebookIcon,
-                                  onPressed: () {},
-                                  text: continueWithFacebook,
-                                ),
-                              ),
-                            ),
+                            // 20.height,
+                            // SizedBox(
+                            //   width: MediaQuery.of(context).size.width,
+                            //   height: 60,
+                            //   child: Padding(
+                            //     padding:
+                            //         const EdgeInsets.symmetric(horizontal: 12),
+                            //     child: CustomButtonWithIcon(
+                            //       icon: facebookIcon,
+                            //       onPressed: () {},
+                            //       text: continueWithFacebook,
+                            //     ),
+                            //   ),
+                            // ),
                             20.height,
                             SizedBox(
                               width: MediaQuery.of(context).size.width,

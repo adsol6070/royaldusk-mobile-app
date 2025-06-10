@@ -1,6 +1,6 @@
-const appName = "ExploreEase";
+const appName = "Royaldusk Tours";
 const welcomeText = "Welcome Back!";
-const welcomeDesc = "Explore the new experience with ExploreEase";
+const welcomeDesc = "Explore the new experience with royal dusk tours";
 const continueWithEmail = "Continue With Email";
 const continueWithFacebook = "Continue With Facebook";
 const continueWithGoogle = "Continue With Google";

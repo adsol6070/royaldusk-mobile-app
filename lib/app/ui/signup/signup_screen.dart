@@ -329,30 +329,30 @@ class SignUpScreenState extends State<SignUpScreen> {
                                 ),
                               ),
                             ),
-                            TextButton(
-                              style: iconBorderStyle,
-                              onPressed: () {},
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: IconButton(
-                                  icon: SvgPicture.asset(facebookIcon),
-                                  iconSize: iconSize,
-                                  onPressed: () {},
-                                ),
-                              ),
-                            ),
-                            TextButton(
-                              style: iconBorderStyle,
-                              onPressed: () {},
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: IconButton(
-                                  icon: SvgPicture.asset(isDarkMode ? appleWhiteIcon :appleIcon),
-                                  iconSize: iconSize,
-                                  onPressed: () {},
-                                ),
-                              ),
-                            ),
+                            // TextButton(
+                            //   style: iconBorderStyle,
+                            //   onPressed: () {},
+                            //   child: Padding(
+                            //     padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            //     child: IconButton(
+                            //       icon: SvgPicture.asset(facebookIcon),
+                            //       iconSize: iconSize,
+                            //       onPressed: () {},
+                            //     ),
+                            //   ),
+                            // ),
+                            // TextButton(
+                            //   style: iconBorderStyle,
+                            //   onPressed: () {},
+                            //   child: Padding(
+                            //     padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            //     child: IconButton(
+                            //       icon: SvgPicture.asset(isDarkMode ? appleWhiteIcon :appleIcon),
+                            //       iconSize: iconSize,
+                            //       onPressed: () {},
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
                         8.height,
