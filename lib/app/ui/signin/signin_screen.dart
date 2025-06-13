@@ -188,27 +188,27 @@ class SignInScreenState extends State<SignInScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Transform.scale(
-                                  scale: 0.6,
-                                  // Adjust the scale factor to change the size
-                                  child: CupertinoSwitch(
-                                    value: controller.rememberMe,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        controller.rememberMe = value;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                Text(rememberMe,
-                                    style: TextStyle(
-                                        color: isDarkMode
-                                            ? whiteColor.withAlpha(153)
-                                            : appTextColorPrimary.withAlpha(153))),
-                              ],
-                            ),
+                            // Row(
+                            //   children: [
+                            //     Transform.scale(
+                            //       scale: 0.6,
+                            //       // Adjust the scale factor to change the size
+                            //       child: CupertinoSwitch(
+                            //         value: controller.rememberMe,
+                            //         onChanged: (value) {
+                            //           setState(() {
+                            //             controller.rememberMe = value;
+                            //           });
+                            //         },
+                            //       ),
+                            //     ),
+                            //     Text(rememberMe,
+                            //         style: TextStyle(
+                            //             color: isDarkMode
+                            //                 ? whiteColor.withAlpha(153)
+                            //                 : appTextColorPrimary.withAlpha(153))),
+                            //   ],
+                            // ),
                             TextButton(
                               onPressed: () {
                                 controller.goToForgotPasswordScreen();
