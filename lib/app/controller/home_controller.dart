@@ -15,9 +15,13 @@ class HomeController extends GetxController {
 
   RxList<Category> allCategories = <Category>[].obs;
   final RxList<PopularPackage> allPackages = <PopularPackage>[].obs;
+  final RxList<PopularPackage> filteredPackages = <PopularPackage>[].obs;
   final RxList<PopularPackage> allPopularPackages = <PopularPackage>[].obs;
+  final RxList<PopularPackage> filteredPopularPackages = <PopularPackage>[].obs;
   final RxList<PopularPackage> topPackages = <PopularPackage>[].obs;
   int popularPkgCurrentIndex = 0;
+
+  final TextEditingController searchController = TextEditingController();
 
   @override
   void onReady() {
@@ -50,6 +54,23 @@ class HomeController extends GetxController {
     ]);
   }
 
+  void filterPackages(String query) {
+    if (query.isEmpty) {
+      filteredPackages.assignAll(allPackages);
+      filteredPopularPackages.assignAll(allPopularPackages);
+    } else {
+      final result = allPackages
+          .where((pkg) => pkg.name.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+      filteredPackages.assignAll(result);
+
+      final popResult = allPopularPackages
+          .where((pkg) => pkg.name.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+      filteredPopularPackages.assignAll(popResult);
+    }
+  }
+
   @override
   void onClose() {}
 
@@ -75,6 +96,7 @@ class HomeController extends GetxController {
         for (var item in jsonArray) {
           allPackages.add(PopularPackage.fromJson(item));
         }
+        filteredPackages.assignAll(allPackages);
       } else {
         print("Failed to load all packages: ${response.statusCode}");
       }
@@ -95,10 +117,9 @@ class HomeController extends GetxController {
         List<dynamic> jsonArray = decoded['data'];
         for (var item in jsonArray) {
           final pkg = PopularPackage.fromJson(item);
-          // if (pkg.tag.toLowerCase() == 'Popular') {
           allPopularPackages.add(pkg);
-          // }
         }
+        filteredPopularPackages.assignAll(allPopularPackages);
       } else {
         print("Failed to load popular packages: ${response.statusCode}");
       }
@@ -119,9 +140,7 @@ class HomeController extends GetxController {
         List<dynamic> jsonArray = decoded['data'];
         for (var item in jsonArray) {
           final pkg = PopularPackage.fromJson(item);
-          // if (pkg.tag.toLowerCase() == 'Top') {
           topPackages.add(pkg);
-          // }
         }
       } else {
         print("Failed to load top packages: ${response.statusCode}");
@@ -131,22 +150,4 @@ class HomeController extends GetxController {
     }
     return topPackages;
   }
-
-  TextEditingController searchController = TextEditingController();
 }
-
-/* {
-      "id": 2,
-      "name": "Flight",
-      "image": "https://i.ibb.co/nrcndkS/Plane.png"
-    },
-    {
-      "id": 3,
-      "name": "Places",
-      "image": "https://i.ibb.co/mHN7HFn/Places.png"
-    },
-    {
-      "id": 4,
-      "name": "Hotel",
-      "image": "https://i.ibb.co/6rd0LW6/Hotel.png"
-    } */

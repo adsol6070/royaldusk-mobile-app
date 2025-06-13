@@ -46,10 +46,8 @@ class PopularCategoryViewScreenState extends State<PopularCategoryView> {
             // Background image
             ClipRRect(
               borderRadius: BorderRadius.circular(15.0),
-              child: commonCacheImageWidget(
-                widget.popularPackage.imageUrl,
-                200,
-              ),
+              child: commonCacheImageWidget(widget.popularPackage.imageUrl, 200,
+                  width: double.infinity, fit: BoxFit.cover),
             ),
 
             // Transparent overlay

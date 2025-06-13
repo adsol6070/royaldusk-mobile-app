@@ -156,7 +156,10 @@ class MyTripScreenState extends State<MyTripScreen> {
                                       itemBuilder: (context, index) {
                                         Hotel hotel =
                                             controller.myHotelList[index];
-                                        return PopularHotelView(hotel, isBooked: true,);
+                                        return PopularHotelView(
+                                          hotel,
+                                          isBooked: true,
+                                        );
                                       },
                                     ),
                             );

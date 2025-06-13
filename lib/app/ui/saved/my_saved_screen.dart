@@ -60,7 +60,8 @@ class MySavedScreenState extends State<MySavedScreen> {
                     const Text(
                       "Result found (04)",
                       style: TextStyle(
-                          fontSize: textSizeMedium, fontWeight: FontWeight.w500),
+                          fontSize: textSizeMedium,
+                          fontWeight: FontWeight.w500),
                     ),
                     // 10.height,
                     if (controller.selectedIndex == 0)
@@ -116,7 +117,8 @@ class MySavedScreenState extends State<MySavedScreen> {
                                     : ListView.builder(
                                         physics:
                                             const AlwaysScrollableScrollPhysics(),
-                                        itemCount: controller.myFlightList.length,
+                                        itemCount:
+                                            controller.myFlightList.length,
                                         shrinkWrap: true,
                                         scrollDirection: Axis.vertical,
                                         itemBuilder: (context, index) {
@@ -126,7 +128,12 @@ class MySavedScreenState extends State<MySavedScreen> {
                                             rightMargin: 0,
                                             isColor: true,
                                             ticket: singleTicket,
-                                            isDarkMode: false, onPressed: () {Get.off( SeatBookingScreen(ticket: singleTicket,));  },
+                                            isDarkMode: false,
+                                            onPressed: () {
+                                              Get.off(SeatBookingScreen(
+                                                ticket: singleTicket,
+                                              ));
+                                            },
                                           );
                                         }),
                               );
@@ -154,7 +161,8 @@ class MySavedScreenState extends State<MySavedScreen> {
                                     : ListView.builder(
                                         physics:
                                             const AlwaysScrollableScrollPhysics(),
-                                        itemCount: controller.myPlacesList.length,
+                                        itemCount:
+                                            controller.myPlacesList.length,
                                         shrinkWrap: true,
                                         scrollDirection: Axis.vertical,
                                         itemBuilder: (context, index) {
@@ -168,7 +176,7 @@ class MySavedScreenState extends State<MySavedScreen> {
                           },
                         )),
                       ),
-              
+
                     if (controller.selectedIndex == 3)
                       Expanded(
                         child: Center(
@@ -189,7 +197,8 @@ class MySavedScreenState extends State<MySavedScreen> {
                                     : ListView.builder(
                                         physics:
                                             const AlwaysScrollableScrollPhysics(),
-                                        itemCount: controller.myHotelList.length,
+                                        itemCount:
+                                            controller.myHotelList.length,
                                         shrinkWrap: true,
                                         scrollDirection: Axis.vertical,
                                         itemBuilder: (context, index) {

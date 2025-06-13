@@ -77,7 +77,7 @@ class TopPackagesScreenState extends State<TopPackagesScreen> {
                       Flexible(
                         fit: FlexFit.loose,
                         child: Text(
-                          widget.popularPackage.location.toString(),
+                          widget.popularPackage.location.name.toString(),
                           softWrap: false,
                           overflow: TextOverflow.fade,
                           style: primaryTextStyle(

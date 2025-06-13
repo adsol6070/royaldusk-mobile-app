@@ -1,4 +1,5 @@
 import 'package:get/get_navigation/src/routes/get_route.dart';
+import 'package:royaldusk_mobile_app/middleware/auth_middleware.dart';
 
 import '../app/ui/dashboard/main_home_screen.dart';
 import '../app/ui/drawer/drawer_screen.dart';
@@ -32,6 +33,7 @@ class MyRoutes {
   static const mainHomeScreen = '/main_home_screen';
   static const mainDrawerScreen = '/main_drawer_screen';
   static const popularPackageScreen = '/popular_package_screen';
+  static const topPackageScreen = '/top_package_screen';
   static const flightScreen = '/flight_screen';
   static const paymentScreen = '/payment_screen';
   static const confirmationScreen = '/confirmation_screen';
@@ -44,25 +46,69 @@ class MyRoutes {
 
   static final routes = [
     GetPage(name: initial, page: () => const SplashScreen()),
-    GetPage(name: welcome, page: () => const WelcomeScreen()),
-    GetPage(name: signIn, page: () => const SignInScreen()),
-    GetPage(name: signup, page: () => const SignUpScreen()),
+    GetPage(
+        name: welcome,
+        page: () => const WelcomeScreen(),
+        middlewares: [GuestMiddleware()]),
+    GetPage(
+        name: signIn,
+        page: () => const SignInScreen(),
+        middlewares: [GuestMiddleware()]),
+    GetPage(
+        name: signup,
+        page: () => const SignUpScreen(),
+        middlewares: [GuestMiddleware()]),
     GetPage(name: otpVerify, page: () => const OtpVerificationScreen()),
     GetPage(name: resetPassword, page: () => const ResetPasswordScreen()),
     GetPage(name: newPassword, page: () => const NewPasswordScreen()),
-    GetPage(name: mainHomeScreen, page: () => const MainHomeScreen()),
-    GetPage(name: mainDrawerScreen, page: () => MainDrawerScreen()),
     GetPage(
-        name: popularPackageScreen, page: () => const PopularPackageScreen()),
-    GetPage(name: flightScreen, page: () => const FlightScreen()),
-    GetPage(name: paymentScreen, page: () => const PaymentScreen()),
-    GetPage(name: confirmationScreen, page: () => const ConfirmationScreen()),
-    GetPage(name: boardingPass, page: () => const BoardingPassScreen()),
-    GetPage(name: popularPlace, page: () => const PopularPlaceScreen()),
-    GetPage(name: popularHotel, page: () => const HotelListScreen()),
+        name: mainHomeScreen,
+        page: () => const MainHomeScreen(),
+        middlewares: [AuthMiddleware()]),
     GetPage(
-        name: hotelConfirmation, page: () => const HotelConfirmationScreen()),
-    GetPage(name: profileScreen, page: () => const MyProfileScreen()),
-    GetPage(name: searchScreen, page: () => const SearchResultScreen()),
+        name: mainDrawerScreen,
+        page: () => MainDrawerScreen(),
+        middlewares: [AuthMiddleware()]),
+    GetPage(
+        name: popularPackageScreen,
+        page: () => const PopularPackageScreen(),
+        middlewares: [AuthMiddleware()]),
+    // GetPage(name: topPackageScreen, page: )
+    GetPage(
+        name: flightScreen,
+        page: () => const FlightScreen(),
+        middlewares: [AuthMiddleware()]),
+    GetPage(
+        name: paymentScreen,
+        page: () => const PaymentScreen(),
+        middlewares: [AuthMiddleware()]),
+    GetPage(
+        name: confirmationScreen,
+        page: () => const ConfirmationScreen(),
+        middlewares: [AuthMiddleware()]),
+    GetPage(
+        name: boardingPass,
+        page: () => const BoardingPassScreen(),
+        middlewares: [AuthMiddleware()]),
+    GetPage(
+        name: popularPlace,
+        page: () => const PopularPlaceScreen(),
+        middlewares: [AuthMiddleware()]),
+    GetPage(
+        name: popularHotel,
+        page: () => const HotelListScreen(),
+        middlewares: [AuthMiddleware()]),
+    GetPage(
+        name: hotelConfirmation,
+        page: () => const HotelConfirmationScreen(),
+        middlewares: [AuthMiddleware()]),
+    GetPage(
+        name: profileScreen,
+        page: () => const MyProfileScreen(),
+        middlewares: [AuthMiddleware()]),
+    GetPage(
+        name: searchScreen,
+        page: () => const SearchResultScreen(),
+        middlewares: [AuthMiddleware()]),
   ];
 }

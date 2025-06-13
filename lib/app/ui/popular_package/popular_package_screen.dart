@@ -21,7 +21,7 @@ class PopularPackageScreen extends StatefulWidget {
 
 class PopularPackageScreenState extends State<PopularPackageScreen> {
   late PopularPackagesController controller;
-  var totalRecords = 30;
+  int get totalRecords => controller.myData.length;
   late bool isDarkMode;
 
   @override
