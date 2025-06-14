@@ -20,11 +20,23 @@ class PaymentScreen extends StatefulWidget {
 
 class PaymentScreenState extends State<PaymentScreen> {
   late PaymentController controller;
-  late bool isDarkMode;
+  // late bool isDarkMode;
 
   // Get booking data from arguments
   Map<String, dynamic>? get bookingData =>
       Get.arguments as Map<String, dynamic>?;
+
+  bool get isDarkMode {
+    try {
+      // Try to get theme controller if it exists
+      final themeController =
+          Get.find<dynamic>(); // Replace with your actual theme controller type
+      return themeController?.isDarkMode ?? false;
+    } catch (e) {
+      // Fallback to system theme if no theme controller found
+      return Theme.of(context).brightness == Brightness.dark;
+    }
+  }
 
   // Form controllers for Stripe
   final TextEditingController cardNumberController = TextEditingController();
@@ -44,8 +56,8 @@ class PaymentScreenState extends State<PaymentScreen> {
   @override
   void initState() {
     super.initState();
-    controller = PaymentController();
-    isDarkMode = controller.themeController.isDarkMode;
+    controller = PaymentController.to;
+    // isDarkMode = controller.themeController.isDarkMode;
   }
 
   @override

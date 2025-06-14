@@ -12,6 +12,7 @@ import 'package:royaldusk_mobile_app/widgets/grediant_button.dart';
 import '../../../constant/app_images.dart';
 import '../../../route/my_route.dart';
 import '../../controller/confirmation_controller.dart';
+import '../../controller/auth_controller.dart';
 import '../../model/popular_packages.dart';
 
 class ConfirmationScreen extends StatefulWidget {
@@ -23,13 +24,26 @@ class ConfirmationScreen extends StatefulWidget {
 
 class ConfirmationScreenState extends State<ConfirmationScreen> {
   late ConfirmationController controller;
-  late bool isDarkMode;
+  late AuthController authController;
+  bool get isDarkMode {
+    try {
+      // Try to get theme controller if it exists
+      final themeController =
+          Get.find<dynamic>(); // Replace with your actual theme controller type
+      return themeController?.isDarkMode ?? false;
+    } catch (e) {
+      // Fallback to system theme if no theme controller found
+      return Theme.of(context).brightness == Brightness.dark;
+    }
+  }
 
   // Get package from arguments passed via Get.toNamed
   PopularPackage? get popularPackage => Get.arguments as PopularPackage?;
 
   // Form controllers
   final TextEditingController phoneController = TextEditingController();
+  final TextEditingController nationalityController = TextEditingController();
+  final TextEditingController remarksController = TextEditingController();
   DateTime? selectedStartDate;
   int travelerCount = 1;
 
@@ -39,18 +53,26 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
   @override
   void initState() {
     super.initState();
-    controller = ConfirmationController();
-    isDarkMode = controller.themeController.isDarkMode;
+    controller = Get.put(ConfirmationController(), tag: 'travel_confirmation');
+    authController = AuthController.to;
+    // isDarkMode = controller.themeController.isDarkMode;
 
     // Set initial values if package is provided
     if (popularPackage != null) {
       travelerCount = 1; // Default to 1 person
+    }
+
+    // Pre-fill phone number if available from auth
+    if (authController.phoneNumber.isNotEmpty) {
+      phoneController.text = authController.phoneNumber;
     }
   }
 
   @override
   void dispose() {
     phoneController.dispose();
+    nationalityController.dispose();
+    remarksController.dispose();
     super.dispose();
   }
 
@@ -89,6 +111,10 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
                         _buildPackageSummaryCard(),
                         20.height,
 
+                        // Show authentication info
+                        _buildAuthInfoCard(),
+                        20.height,
+
                         Text(
                           "Trip Details",
                           style: TextStyle(
@@ -118,6 +144,14 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
                         _buildPhoneNumberInput(),
                         20.height,
 
+                        // Nationality Input
+                        _buildNationalityInput(),
+                        20.height,
+
+                        // Remarks Input
+                        _buildRemarksInput(),
+                        20.height,
+
                         // Travelers Count
                         _buildTravelersSection(),
                         10.height,
@@ -137,10 +171,18 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
                         _buildTotalSection(),
                         30.height,
 
+                        // Show any booking errors
+                        Obx(() => controller.hasError
+                            ? _buildErrorWidget()
+                            : const SizedBox.shrink()),
+
                         // Continue Button
-                        GradientElevatedButton(
-                            onPressed: _handleContinue,
-                            text: "Continue to Payment"),
+                        Obx(() => GradientElevatedButton(
+                            onPressed:
+                                controller.isLoading ? () {} : _handleContinue,
+                            text: controller.isLoading
+                                ? "Creating Booking..."
+                                : "Create Booking")),
 
                         20.height,
                       ],
@@ -151,6 +193,84 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
             ),
           );
         });
+  }
+
+  Widget _buildAuthInfoCard() {
+    return Obx(() => Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDarkMode
+                ? appTextColorPrimary.withAlpha(26)
+                : Colors.blue.withAlpha(26),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.person, color: Colors.blue, size: 20),
+                  8.width,
+                  Text(
+                    'Booking for:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: textSizeSmall,
+                      color: isDarkMode
+                          ? whiteColor.withAlpha(153)
+                          : appTextColorPrimary.withAlpha(153),
+                    ),
+                  ),
+                ],
+              ),
+              8.height,
+              Text(
+                authController.displayName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: textSizeMedium,
+                ),
+              ),
+              4.height,
+              Text(
+                authController.userEmail,
+                style: TextStyle(
+                  fontSize: textSizeSmall,
+                  color: isDarkMode
+                      ? whiteColor.withAlpha(153)
+                      : appTextColorPrimary.withAlpha(153),
+                ),
+              ),
+            ],
+          ),
+        ));
+  }
+
+  Widget _buildErrorWidget() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.withAlpha(26),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withAlpha(51)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error, color: Colors.red, size: 24),
+          12.width,
+          Expanded(
+            child: Text(
+              controller.errorMessage,
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPackageSummaryCard() {
@@ -262,9 +382,11 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
               border: Border.all(
-                color: isDarkMode
-                    ? whiteColor.withAlpha(51)
-                    : appTextColorPrimary.withAlpha(51),
+                color: controller.hasFieldError('startDate')
+                    ? Colors.red
+                    : (isDarkMode
+                        ? whiteColor.withAlpha(51)
+                        : appTextColorPrimary.withAlpha(51)),
               ),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -295,6 +417,15 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
             ),
           ),
         ),
+        if (controller.hasFieldError('startDate'))
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              controller.getFieldError('startDate') ?? '',
+              style:
+                  const TextStyle(color: Colors.red, fontSize: textSizeSmall),
+            ),
+          ),
       ],
     );
   }
@@ -377,9 +508,11 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
-                color: isDarkMode
-                    ? whiteColor.withAlpha(51)
-                    : appTextColorPrimary.withAlpha(51),
+                color: controller.hasFieldError('phone')
+                    ? Colors.red
+                    : (isDarkMode
+                        ? whiteColor.withAlpha(51)
+                        : appTextColorPrimary.withAlpha(51)),
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -404,6 +537,137 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
             }
             return null;
           },
+          onChanged: (value) => _validateFormData(),
+        ),
+        if (controller.hasFieldError('phone'))
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              controller.getFieldError('phone') ?? '',
+              style:
+                  const TextStyle(color: Colors.red, fontSize: textSizeSmall),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildNationalityInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Nationality",
+          style: TextStyle(
+            color: isDarkMode
+                ? whiteColor.withAlpha(153)
+                : appTextColorPrimary.withAlpha(153),
+            fontSize: textSizeMedium,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        8.height,
+        TextFormField(
+          controller: nationalityController,
+          style: TextStyle(
+            fontSize: textSizeMedium,
+            fontWeight: FontWeight.bold,
+            fontFamily: GoogleFonts.ubuntu().fontFamily,
+          ),
+          decoration: InputDecoration(
+            hintText: "Enter your nationality (optional)",
+            hintStyle: TextStyle(
+              color: isDarkMode
+                  ? whiteColor.withAlpha(153)
+                  : appTextColorPrimary.withAlpha(153),
+              fontWeight: FontWeight.normal,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: isDarkMode
+                    ? whiteColor.withAlpha(51)
+                    : appTextColorPrimary.withAlpha(51),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: isDarkMode
+                    ? whiteColor.withAlpha(51)
+                    : appTextColorPrimary.withAlpha(51),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: appColorPrimary),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRemarksInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Special Requests/Remarks",
+          style: TextStyle(
+            color: isDarkMode
+                ? whiteColor.withAlpha(153)
+                : appTextColorPrimary.withAlpha(153),
+            fontSize: textSizeMedium,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        8.height,
+        TextFormField(
+          controller: remarksController,
+          maxLines: 3,
+          style: TextStyle(
+            fontSize: textSizeMedium,
+            fontWeight: FontWeight.bold,
+            fontFamily: GoogleFonts.ubuntu().fontFamily,
+          ),
+          decoration: InputDecoration(
+            hintText: "Any special requests or remarks (optional)",
+            hintStyle: TextStyle(
+              color: isDarkMode
+                  ? whiteColor.withAlpha(153)
+                  : appTextColorPrimary.withAlpha(153),
+              fontWeight: FontWeight.normal,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: isDarkMode
+                    ? whiteColor.withAlpha(51)
+                    : appTextColorPrimary.withAlpha(51),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: isDarkMode
+                    ? whiteColor.withAlpha(51)
+                    : appTextColorPrimary.withAlpha(51),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: appColorPrimary),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+          ),
         ),
       ],
     );
@@ -430,6 +694,12 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
             ),
             _buildText(
                 '$travelerCount ${travelerCount == 1 ? 'Person' : 'Persons'}'),
+            if (controller.hasFieldError('travelers'))
+              Text(
+                controller.getFieldError('travelers') ?? '',
+                style:
+                    const TextStyle(color: Colors.red, fontSize: textSizeSmall),
+              ),
           ],
         ),
         _buildQtyPicker()
@@ -574,6 +844,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
       setState(() {
         selectedStartDate = picked;
       });
+      _validateFormData();
     }
   }
 
@@ -583,6 +854,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
       setState(() {
         travelerCount++;
       });
+      _validateFormData();
     }
   }
 
@@ -592,10 +864,22 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
       setState(() {
         travelerCount--;
       });
+      _validateFormData();
     }
   }
 
-  void _handleContinue() {
+  void _validateFormData() {
+    if (popularPackage != null && selectedStartDate != null) {
+      controller.validateForm(
+        package: popularPackage!,
+        startDate: selectedStartDate!,
+        travelers: travelerCount,
+        phoneNumber: phoneController.text,
+      );
+    }
+  }
+
+  void _handleContinue() async {
     // Check if package data exists
     if (popularPackage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -609,39 +893,94 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
       return;
     }
 
-    if (_formKey.currentState!.validate()) {
-      // Check if start date is selected
-      if (selectedStartDate == null) {
-        // Show error for date selection
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select a start date'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        return;
-      }
+    // Validate form
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-      // Create booking data object to pass to payment screen
-      final bookingData = {
-        'package': popularPackage,
-        'startDate': selectedStartDate,
-        'travelerCount': travelerCount,
-        'phoneNumber': phoneController.text,
-        'totalPrice': totalPrice,
-        'currency': currency,
-      };
-
-      // Navigate to payment screen with booking data
-      Get.toNamed(MyRoutes.paymentScreen, arguments: bookingData);
-
-      // Show success message
+    // Check if start date is selected
+    if (selectedStartDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Booking details confirmed!'),
-          backgroundColor: Colors.green,
+          content: Text('Please select a start date'),
+          backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // Check authentication
+    if (!authController.isValidSession) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in to create a booking'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Clear any previous errors
+      controller.clearFormErrors();
+
+      // Create booking via API
+      final result = await controller.createBooking(
+        package: popularPackage!,
+        startDate: selectedStartDate!,
+        travelers: travelerCount,
+        phoneNumber: phoneController.text,
+        nationality: nationalityController.text.isEmpty
+            ? null
+            : nationalityController.text,
+        remarks: remarksController.text.isEmpty ? null : remarksController.text,
+        agreedToTerms: true,
+      );
+
+      if (result != null) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Booking created successfully! ID: ${controller.lastCreatedBookingId.value}'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+
+        // Navigate to payment screen or booking confirmation screen
+        final bookingData = {
+          'package': popularPackage,
+          'startDate': selectedStartDate,
+          'travelerCount': travelerCount,
+          'phoneNumber': phoneController.text,
+          'nationality': nationalityController.text,
+          'remarks': remarksController.text,
+          'totalPrice': totalPrice,
+          'currency': currency,
+          'bookingId': controller.lastCreatedBookingId.value,
+          'bookingResponse': result,
+        };
+
+        // Navigate to payment screen with booking data
+        Get.toNamed(MyRoutes.paymentScreen, arguments: bookingData);
+      }
+    } catch (e) {
+      // Error is already handled by the controller and shown in UI
+      // Additional handling can be done here if needed
+      print('❌ Booking creation failed: $e');
+
+      // Show additional error context if needed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Failed to create booking: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
         ),
       );
     }
