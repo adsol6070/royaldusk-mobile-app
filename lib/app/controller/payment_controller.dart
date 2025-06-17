@@ -1,17 +1,15 @@
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:flutter/material.dart';
 import 'auth_controller.dart';
 
-/// Payment methods supported by the system
 enum PaymentMethod { card, wallet, bank }
 
-/// Payment providers supported by the system
 enum PaymentProvider { stripe, paypal, razorpay }
 
-/// Payment status tracking
 enum PaymentStatus { idle, processing, success, failed, cancelled }
 
-/// Payment intent creation states
 enum PaymentIntentStatus { idle, creating, created, failed }
 
 class PaymentController extends GetxController {
@@ -42,6 +40,10 @@ class PaymentController extends GetxController {
 
   // Payment configuration
   final RxMap<String, dynamic> paymentConfig = <String, dynamic>{}.obs;
+
+  // Stripe-specific properties
+  PaymentIntent? _currentPaymentIntent;
+  String? _currentBookingId;
 
   // Theme controller access (assuming you have one)
   dynamic get themeController =>
@@ -79,16 +81,17 @@ class PaymentController extends GetxController {
     intentStatus.value = PaymentIntentStatus.idle;
     paymentFormErrors.clear();
     isPaymentFormValid.value = false;
+    _currentPaymentIntent = null;
+    _currentBookingId = null;
   }
 
   /// Load payment configuration from API or local storage
   Future<void> _loadPaymentConfiguration() async {
     try {
-      // You can load payment configuration from API if needed
       paymentConfig.assignAll({
         'supportedMethods': ['card', 'wallet'],
         'supportedProviders': ['stripe'],
-        'defaultCurrency': 'AED',
+        'defaultCurrency': 'usd',
         'minAmount': 1.0,
         'maxAmount': 50000.0,
       });
@@ -97,11 +100,11 @@ class PaymentController extends GetxController {
     }
   }
 
-  /// Create payment intent with comprehensive validation and error handling
-  Future<Map<String, dynamic>?> createPaymentIntent({
+  /// Create payment intent with your backend API
+  Future<PaymentIntent?> createPaymentIntent({
     required String bookingId,
     required double amount,
-    String currency = 'AED',
+    String currency = 'usd',
     PaymentProvider provider = PaymentProvider.stripe,
     PaymentMethod method = PaymentMethod.card,
     Map<String, dynamic>? metadata,
@@ -131,22 +134,29 @@ class PaymentController extends GetxController {
     lastPaymentError.value = '';
 
     try {
-      // Prepare payment intent payload
-      final intentPayload = _buildPaymentIntentPayload(
-        bookingId: bookingId,
-        amount: amount,
-        currency: currency,
-        provider: provider,
-        method: method,
-        metadata: metadata,
-      );
+      // Convert amount to cents (Stripe expects amount in smallest currency unit)
+      final amountInCents = _convertToSmallestUnit(amount, currency);
+
+      // Prepare payment intent payload for your backend
+      final intentPayload = {
+        'bookingId': bookingId.trim(),
+        'amount': amountInCents,
+        'currency': currency.toLowerCase(),
+        'provider': _getProviderString(provider),
+        'method': _getMethodString(method),
+      };
+
+      // Add metadata if provided
+      // if (metadata != null && metadata.isNotEmpty) {
+      //   intentPayload['metadata'] = metadata;
+      // }
 
       print(
           '📤 Creating payment intent with payload: ${intentPayload.toString()}');
 
-      // Make API call
+      // Make API call to your backend
       final response = await _authController.dioClient.post(
-        '/payment-service/payment/create-intent',
+        'https://api.royaldusk.com/payment-service/payment/create-intent',
         data: intentPayload,
       );
 
@@ -154,24 +164,48 @@ class PaymentController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = response.data as Map<String, dynamic>;
 
-        // Extract payment intent data from response
-        final intentData = _extractPaymentIntentData(responseData);
+        // Extract client secret from your backend response
+        String? extractedClientSecret;
 
-        if (intentData != null) {
-          lastCreatedIntentId.value = intentData['intentId'] ?? '';
-          clientSecret.value = intentData['clientSecret'] ?? '';
+        // Try different possible response structures
+        if (responseData['client_secret'] != null) {
+          extractedClientSecret = responseData['client_secret'];
+        } else if (responseData['clientSecret'] != null) {
+          extractedClientSecret = responseData['clientSecret'];
+        } else if (responseData['data'] != null &&
+            responseData['data']['client_secret'] != null) {
+          extractedClientSecret = responseData['data']['client_secret'];
+        } else if (responseData['data'] != null &&
+            responseData['data']['clientSecret'] != null) {
+          extractedClientSecret = responseData['data']['clientSecret'];
+        }
+
+        if (extractedClientSecret == null || extractedClientSecret.isEmpty) {
+          throw Exception('Client secret not found in response');
+        }
+
+        // Store the client secret
+        clientSecret.value = extractedClientSecret;
+        _currentBookingId = bookingId;
+
+        // Retrieve the PaymentIntent using Stripe SDK
+        _currentPaymentIntent = await Stripe.instance.retrievePaymentIntent(
+          extractedClientSecret,
+        );
+
+        if (_currentPaymentIntent != null) {
+          lastCreatedIntentId.value = _currentPaymentIntent!.id;
           intentStatus.value = PaymentIntentStatus.created;
 
           print(
               '✅ Payment intent created successfully: ${lastCreatedIntentId.value}');
 
-          // Store intent data for later use
-          _storePaymentIntentData(intentData);
+          return _currentPaymentIntent;
+        } else {
+          throw Exception('Failed to retrieve PaymentIntent from Stripe');
         }
-
-        return responseData;
       } else {
-        throw Exception('Unexpected response status: ${response.statusCode}');
+        throw Exception('Backend API error: ${response.statusCode}');
       }
     } on dio.DioException catch (e) {
       print('❌ Dio Exception during payment intent creation');
@@ -182,6 +216,12 @@ class PaymentController extends GetxController {
       lastPaymentError.value = errorMessage;
       intentStatus.value = PaymentIntentStatus.failed;
       throw Exception(errorMessage);
+    } on StripeException catch (e) {
+      print('❌ Stripe Exception: ${e.error.localizedMessage}');
+      lastPaymentError.value =
+          e.error.localizedMessage ?? 'Stripe error occurred';
+      intentStatus.value = PaymentIntentStatus.failed;
+      throw Exception(lastPaymentError.value);
     } catch (e) {
       print('❌ Unexpected error during payment intent creation: $e');
       lastPaymentError.value =
@@ -193,43 +233,151 @@ class PaymentController extends GetxController {
     }
   }
 
-  /// Build payment intent payload from provided data
-  Map<String, dynamic> _buildPaymentIntentPayload({
-    required String bookingId,
-    required double amount,
-    required String currency,
-    required PaymentProvider provider,
-    required PaymentMethod method,
-    Map<String, dynamic>? metadata,
-  }) {
-    // Convert amount to smallest currency unit (cents for most currencies)
-    final amountInCents = _convertToSmallestUnit(amount, currency);
-
-    final payload = {
-      'bookingId': bookingId.trim(),
-      'amount': amountInCents,
-      'currency': currency.toUpperCase(),
-      'provider': _getProviderString(provider),
-      'method': _getMethodString(method),
-    };
-
-    // Add user information
-    payload['userId'] = _authController.userId;
-    payload['userEmail'] = _authController.userEmail;
-
-    // Add metadata if provided
-    if (metadata != null && metadata.isNotEmpty) {
-      payload['metadata'] = metadata;
+  /// Process payment using Stripe SDK
+  Future<PaymentIntent?> confirmPaymentWithCard({
+    required String cardNumber,
+    required String expiryDate,
+    required String cvv,
+    required String cardHolderName,
+    BillingDetails? billingDetails,
+  }) async {
+    if (_currentPaymentIntent == null || clientSecret.value.isEmpty) {
+      throw Exception(
+          'No payment intent found. Please create payment intent first.');
     }
 
-    // Add customer information for better payment processing
-    payload['customer'] = {
-      'id': _authController.userId,
-      'email': _authController.userEmail,
-      'name': _authController.displayName,
-    };
+    isProcessingPayment.value = true;
+    paymentStatus.value = PaymentStatus.processing;
+    lastPaymentError.value = '';
 
-    return payload;
+    try {
+      // Parse expiry date (MM/YY format)
+      final expiryParts = expiryDate.split('/');
+      if (expiryParts.length != 2) {
+        throw Exception('Invalid expiry date format');
+      }
+
+      final expMonth = int.tryParse(expiryParts[0]);
+      final expYear = int.tryParse('20${expiryParts[1]}');
+
+      if (expMonth == null ||
+          expYear == null ||
+          expMonth < 1 ||
+          expMonth > 12) {
+        throw Exception('Invalid expiry date');
+      }
+
+      // Create payment method with card details
+      await Stripe.instance.createPaymentMethod(
+        params: PaymentMethodParams.card(
+          paymentMethodData: PaymentMethodData(
+            billingDetails: billingDetails ??
+                BillingDetails(
+                  name: cardHolderName,
+                  email: _authController.userEmail,
+                ),
+          ),
+        ),
+      );
+
+      // Confirm payment with the created payment method
+      final confirmedPaymentIntent = await Stripe.instance.confirmPayment(
+        paymentIntentClientSecret: clientSecret.value,
+        data: PaymentMethodParams.card(
+          paymentMethodData: PaymentMethodData(
+            billingDetails: billingDetails ??
+                BillingDetails(
+                  name: cardHolderName,
+                  email: _authController.userEmail,
+                ),
+          ),
+        ),
+      );
+
+      // Check payment status
+      if (confirmedPaymentIntent.status == PaymentIntentsStatus.Succeeded) {
+        paymentStatus.value = PaymentStatus.success;
+
+        // Refresh payment history
+        _refreshPaymentHistory();
+
+        print('✅ Payment successful: ${confirmedPaymentIntent.id}');
+        return confirmedPaymentIntent;
+      } else if (confirmedPaymentIntent.status ==
+          PaymentIntentsStatus.RequiresAction) {
+        // Handle 3D Secure or other authentication requirements
+        throw Exception('Payment requires additional authentication');
+      } else {
+        throw Exception(
+            'Payment failed with status: ${confirmedPaymentIntent.status}');
+      }
+    } on StripeException catch (e) {
+      print('❌ Stripe Exception during payment: ${e.error.localizedMessage}');
+      lastPaymentError.value = e.error.localizedMessage ?? 'Payment failed';
+      paymentStatus.value = PaymentStatus.failed;
+      throw Exception(lastPaymentError.value);
+    } catch (e) {
+      print('❌ Error during payment confirmation: $e');
+      lastPaymentError.value = e.toString();
+      paymentStatus.value = PaymentStatus.failed;
+      throw Exception(lastPaymentError.value);
+    } finally {
+      isProcessingPayment.value = false;
+    }
+  }
+
+  /// Present payment sheet (alternative to manual card entry)
+  Future<PaymentIntent?> presentPaymentSheet() async {
+    if (_currentPaymentIntent == null || clientSecret.value.isEmpty) {
+      throw Exception(
+          'No payment intent found. Please create payment intent first.');
+    }
+
+    isProcessingPayment.value = true;
+    paymentStatus.value = PaymentStatus.processing;
+    lastPaymentError.value = '';
+
+    try {
+      // Initialize payment sheet
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: clientSecret.value,
+          merchantDisplayName: 'Royal Dusk',
+          customerEphemeralKeySecret: null, // Add if you have customer keys
+          customerId: _authController.userId,
+          style: ThemeMode.system,
+        ),
+      );
+
+      // Present payment sheet
+      await Stripe.instance.presentPaymentSheet();
+
+      // If we reach here, payment was successful
+      paymentStatus.value = PaymentStatus.success;
+
+      // Refresh payment history
+      _refreshPaymentHistory();
+
+      print('✅ Payment sheet payment successful');
+      return _currentPaymentIntent;
+    } on StripeException catch (e) {
+      if (e.error.code == FailureCode.Canceled) {
+        paymentStatus.value = PaymentStatus.cancelled;
+        lastPaymentError.value = 'Payment was cancelled';
+      } else {
+        paymentStatus.value = PaymentStatus.failed;
+        lastPaymentError.value = e.error.localizedMessage ?? 'Payment failed';
+      }
+      print('❌ Stripe Exception in payment sheet: ${e.error.localizedMessage}');
+      throw Exception(lastPaymentError.value);
+    } catch (e) {
+      paymentStatus.value = PaymentStatus.failed;
+      lastPaymentError.value = 'Payment failed';
+      print('❌ Error presenting payment sheet: $e');
+      throw Exception(lastPaymentError.value);
+    } finally {
+      isProcessingPayment.value = false;
+    }
   }
 
   /// Convert amount to smallest currency unit
@@ -287,42 +435,69 @@ class PaymentController extends GetxController {
     required double amount,
     required String currency,
   }) {
+    print('🔍 VALIDATION - Input bookingId: "$bookingId"');
+    print('🔍 VALIDATION - Input amount: $amount');
+    print('🔍 VALIDATION - Input currency: "$currency"');
+    print(
+        '🔍 VALIDATION - bookingId.trim().isEmpty: ${bookingId.trim().isEmpty}');
+    print(
+        '🔍 VALIDATION - _authController.userId: "${_authController.userId}"');
+    print(
+        '🔍 VALIDATION - _authController.userId.isEmpty: ${_authController.userId.isEmpty}');
+
     final Map<String, String> errors = {};
 
     // Booking ID validation
     if (bookingId.trim().isEmpty) {
+      print('❌ VALIDATION - Booking ID is empty after trim');
       errors['bookingId'] = 'Booking ID is required';
-    } else if (!_isValidUUID(bookingId)) {
-      errors['bookingId'] = 'Invalid booking ID format';
+    } else {
+      print('✅ VALIDATION - Booking ID is valid');
     }
 
     // Amount validation
     if (amount <= 0) {
+      print('❌ VALIDATION - Amount is <= 0');
       errors['amount'] = 'Amount must be greater than zero';
     } else {
       final minAmount = paymentConfig['minAmount'] ?? 1.0;
       final maxAmount = paymentConfig['maxAmount'] ?? 50000.0;
+      print('🔍 VALIDATION - minAmount: $minAmount, maxAmount: $maxAmount');
 
       if (amount < minAmount) {
+        print('❌ VALIDATION - Amount below minimum');
         errors['amount'] =
             'Amount must be at least \$${minAmount.toStringAsFixed(2)}';
       } else if (amount > maxAmount) {
+        print('❌ VALIDATION - Amount above maximum');
         errors['amount'] =
             'Amount cannot exceed \$${maxAmount.toStringAsFixed(2)}';
+      } else {
+        print('✅ VALIDATION - Amount is valid');
       }
     }
 
     // Currency validation
     if (currency.trim().isEmpty) {
+      print('❌ VALIDATION - Currency is empty');
       errors['currency'] = 'Currency is required';
     } else if (currency.length != 3) {
+      print('❌ VALIDATION - Currency length != 3, length: ${currency.length}');
       errors['currency'] = 'Invalid currency code';
+    } else {
+      print('✅ VALIDATION - Currency is valid');
     }
 
     // Auth validation
     if (_authController.userId.isEmpty) {
+      print('❌ VALIDATION - User ID is empty');
       errors['auth'] = 'User ID not found. Please log in again';
+    } else {
+      print('✅ VALIDATION - User ID is valid');
     }
+
+    print('🔍 VALIDATION - Final errors: $errors');
+    print('🔍 VALIDATION - Validation result: ${errors.isEmpty}');
 
     // Update form errors for UI
     paymentFormErrors.assignAll(errors);
@@ -333,52 +508,6 @@ class PaymentController extends GetxController {
       'errors': errors,
       'error': errors.isNotEmpty ? errors.values.first : null,
     };
-  }
-
-  /// Check if string is valid UUID format
-  bool _isValidUUID(String uuid) {
-    final uuidRegex = RegExp(
-        r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
-    return uuidRegex.hasMatch(uuid.trim());
-  }
-
-  /// Extract payment intent data from response
-  Map<String, dynamic>? _extractPaymentIntentData(
-      Map<String, dynamic> response) {
-    // Try different possible response structures
-    Map<String, dynamic>? intentData;
-
-    if (response['data'] != null) {
-      intentData = response['data'] as Map<String, dynamic>?;
-    } else if (response['paymentIntent'] != null) {
-      intentData = response['paymentIntent'] as Map<String, dynamic>?;
-    } else {
-      intentData = response;
-    }
-
-    if (intentData != null) {
-      return {
-        'intentId': intentData['id'] ??
-            intentData['intentId'] ??
-            intentData['payment_intent_id'],
-        'clientSecret':
-            intentData['client_secret'] ?? intentData['clientSecret'],
-        'status': intentData['status'],
-        'amount': intentData['amount'],
-        'currency': intentData['currency'],
-        'created':
-            intentData['created'] ?? DateTime.now().millisecondsSinceEpoch,
-      };
-    }
-
-    return null;
-  }
-
-  /// Store payment intent data locally for reference
-  void _storePaymentIntentData(Map<String, dynamic> intentData) {
-    // Store in memory for current session
-    // You could also store in secure storage if needed
-    paymentConfig['lastIntent'] = intentData;
   }
 
   /// Parse payment-specific errors from API response
@@ -441,52 +570,6 @@ class PaymentController extends GetxController {
     return 'Validation errors occurred';
   }
 
-  /// Confirm payment with payment method details
-  Future<Map<String, dynamic>?> confirmPayment({
-    required String paymentIntentId,
-    required Map<String, dynamic> paymentMethodData,
-  }) async {
-    if (paymentIntentId.isEmpty) {
-      throw Exception('Payment intent ID is required');
-    }
-
-    isProcessingPayment.value = true;
-    paymentStatus.value = PaymentStatus.processing;
-    lastPaymentError.value = '';
-
-    try {
-      final response = await _authController.dioClient.post(
-        '/payment-service/payment/confirm',
-        data: {
-          'paymentIntentId': paymentIntentId,
-          'paymentMethod': paymentMethodData,
-        },
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        paymentStatus.value = PaymentStatus.success;
-
-        // Refresh payment history
-        _refreshPaymentHistory();
-
-        return response.data as Map<String, dynamic>;
-      } else {
-        throw Exception('Payment confirmation failed');
-      }
-    } on dio.DioException catch (e) {
-      final errorMessage = _parsePaymentError(e);
-      lastPaymentError.value = errorMessage;
-      paymentStatus.value = PaymentStatus.failed;
-      throw Exception(errorMessage);
-    } catch (e) {
-      lastPaymentError.value = 'Payment confirmation failed';
-      paymentStatus.value = PaymentStatus.failed;
-      throw Exception(lastPaymentError.value);
-    } finally {
-      isProcessingPayment.value = false;
-    }
-  }
-
   /// Fetch user's payment history
   Future<void> fetchPaymentHistory() async {
     if (!_authController.isValidSession) {
@@ -497,7 +580,7 @@ class PaymentController extends GetxController {
 
     try {
       final response = await _authController.dioClient.get(
-        '/payment-service/payment/history/${_authController.userId}',
+        'https://api.royaldusk.com/payment-service/payment/history/${_authController.userId}',
       );
 
       if (response.statusCode == 200) {
@@ -537,66 +620,89 @@ class PaymentController extends GetxController {
     fetchPaymentHistory();
   }
 
-  /// Get payment by ID
-  Future<Map<String, dynamic>?> getPaymentById(String paymentId) async {
-    if (!_authController.isValidSession || paymentId.isEmpty) {
-      return null;
-    }
-
-    try {
-      final response = await _authController.dioClient.get(
-        '/payment-service/payment/$paymentId',
-      );
-
-      if (response.statusCode == 200) {
-        return response.data as Map<String, dynamic>;
-      }
-    } catch (e) {
-      print('❌ Error fetching payment $paymentId: $e');
-    }
-    return null;
-  }
-
-  /// Cancel/refund payment
-  Future<bool> refundPayment(String paymentId,
-      {double? amount, String? reason}) async {
-    if (!_authController.isValidSession || paymentId.isEmpty) {
-      return false;
-    }
-
-    try {
-      final response = await _authController.dioClient.post(
-        '/payment-service/payment/$paymentId/refund',
-        data: {
-          'amount': amount,
-          'reason': reason ?? 'Customer requested refund',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        // Refresh payment history after refund
-        _refreshPaymentHistory();
-        return true;
-      }
-    } catch (e) {
-      print('❌ Error refunding payment $paymentId: $e');
-    }
-    return false;
-  }
-
-  /// Validate payment form and update state
-  void validatePaymentForm({
-    String? bookingId,
-    double? amount,
-    String? currency,
+  /// Validate card information
+  bool validateCardDetails({
+    required String cardNumber,
+    required String expiryDate,
+    required String cvv,
+    required String cardHolderName,
   }) {
-    if (bookingId != null && amount != null && currency != null) {
-      _validatePaymentIntentData(
-        bookingId: bookingId,
-        amount: amount,
-        currency: currency,
-      );
+    final Map<String, String> errors = {};
+
+    // Card number validation
+    final cleanCardNumber = cardNumber.replaceAll(' ', '');
+    if (cleanCardNumber.isEmpty) {
+      errors['cardNumber'] = 'Card number is required';
+    } else if (cleanCardNumber.length < 13 || cleanCardNumber.length > 19) {
+      errors['cardNumber'] = 'Invalid card number length';
+    } else if (!_isValidCardNumber(cleanCardNumber)) {
+      errors['cardNumber'] = 'Invalid card number';
     }
+
+    // Expiry date validation
+    if (expiryDate.isEmpty) {
+      errors['expiryDate'] = 'Expiry date is required';
+    } else if (!_isValidExpiryDate(expiryDate)) {
+      errors['expiryDate'] = 'Invalid or expired date';
+    }
+
+    // CVV validation
+    if (cvv.isEmpty) {
+      errors['cvv'] = 'CVV is required';
+    } else if (cvv.length < 3 || cvv.length > 4) {
+      errors['cvv'] = 'Invalid CVV';
+    }
+
+    // Cardholder name validation
+    if (cardHolderName.trim().isEmpty) {
+      errors['cardHolderName'] = 'Cardholder name is required';
+    }
+
+    paymentFormErrors.assignAll(errors);
+    isPaymentFormValid.value = errors.isEmpty;
+
+    return errors.isEmpty;
+  }
+
+  /// Validate card number using Luhn algorithm
+  bool _isValidCardNumber(String cardNumber) {
+    int sum = 0;
+    bool alternate = false;
+
+    for (int i = cardNumber.length - 1; i >= 0; i--) {
+      int digit = int.tryParse(cardNumber[i]) ?? 0;
+
+      if (alternate) {
+        digit *= 2;
+        if (digit > 9) {
+          digit = (digit % 10) + 1;
+        }
+      }
+
+      sum += digit;
+      alternate = !alternate;
+    }
+
+    return (sum % 10) == 0;
+  }
+
+  /// Validate expiry date
+  bool _isValidExpiryDate(String expiryDate) {
+    final parts = expiryDate.split('/');
+    if (parts.length != 2) return false;
+
+    final month = int.tryParse(parts[0]);
+    final year = int.tryParse('20${parts[1]}');
+
+    if (month == null || year == null) return false;
+    if (month < 1 || month > 12) return false;
+
+    final now = DateTime.now();
+    final expiry = DateTime(year, month);
+    final currentMonth = DateTime(now.year, now.month);
+
+    return expiry.isAfter(currentMonth) ||
+        expiry.isAtSameMomentAs(currentMonth);
   }
 
   /// Clear form errors
@@ -636,7 +742,6 @@ class PaymentController extends GetxController {
       isProcessingPayment.value ||
       isCreatingPaymentIntent.value ||
       isLoadingPaymentHistory.value;
-
   bool get hasPaymentHistory => paymentHistory.isNotEmpty;
   bool get hasError => lastPaymentError.isNotEmpty;
   String get errorMessage => lastPaymentError.value;
@@ -646,6 +751,7 @@ class PaymentController extends GetxController {
   bool get isPaymentFailed => paymentStatus.value == PaymentStatus.failed;
   bool get hasPaymentIntent =>
       lastCreatedIntentId.isNotEmpty && clientSecret.isNotEmpty;
+  PaymentIntent? get currentPaymentIntent => _currentPaymentIntent;
 
   @override
   void onClose() {

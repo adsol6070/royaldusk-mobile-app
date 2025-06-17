@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nb_utils/nb_utils.dart';
+import 'package:royaldusk_mobile_app/app/controller/payment_controller.dart';
 
 import 'package:royaldusk_mobile_app/constant/app_colors.dart';
 import 'package:royaldusk_mobile_app/widgets/app_widget.dart';
@@ -966,6 +967,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
         };
 
         // Navigate to payment screen with booking data
+        Get.put(PaymentController());
         Get.toNamed(MyRoutes.paymentScreen, arguments: bookingData);
       }
     } catch (e) {

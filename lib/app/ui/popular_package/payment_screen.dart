@@ -6,6 +6,7 @@ import 'package:royaldusk_mobile_app/constant/app_colors.dart';
 import 'package:royaldusk_mobile_app/widgets/app_widget.dart';
 import 'package:royaldusk_mobile_app/widgets/grediant_button.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' hide Card;
 
 import '../../controller/payment_controller.dart';
 import '../../model/popular_packages.dart';
@@ -20,7 +21,6 @@ class PaymentScreen extends StatefulWidget {
 
 class PaymentScreenState extends State<PaymentScreen> {
   late PaymentController controller;
-  // late bool isDarkMode;
 
   // Get booking data from arguments
   Map<String, dynamic>? get bookingData =>
@@ -53,11 +53,42 @@ class PaymentScreenState extends State<PaymentScreen> {
   bool isPromoApplied = false;
   double discountAmount = 0.0;
 
+  // Payment processing states
+  bool _isProcessing = false;
+
   @override
   void initState() {
     super.initState();
     controller = PaymentController.to;
-    // isDarkMode = controller.themeController.isDarkMode;
+
+    // Listen to payment status changes
+    _setupPaymentListeners();
+  }
+
+  void _setupPaymentListeners() {
+    // Listen to payment status changes
+    ever(controller.paymentStatus, (PaymentStatus status) {
+      switch (status) {
+        case PaymentStatus.success:
+          _handlePaymentSuccess();
+          break;
+        case PaymentStatus.failed:
+          _handlePaymentFailure();
+          break;
+        case PaymentStatus.cancelled:
+          _handlePaymentCancellation();
+          break;
+        default:
+          break;
+      }
+    });
+
+    // Listen to payment errors
+    ever(controller.lastPaymentError, (String error) {
+      if (error.isNotEmpty && _isProcessing) {
+        _showErrorSnackBar(error);
+      }
+    });
   }
 
   @override
@@ -77,81 +108,101 @@ class PaymentScreenState extends State<PaymentScreen> {
   String get phoneNumber => bookingData?['phoneNumber'] as String? ?? '';
   double get totalPrice => bookingData?['totalPrice'] as double? ?? 0.0;
   String get currency => bookingData?['currency'] as String? ?? '\$';
+  String get bookingId {
+    print('🔍 PaymentScreen - bookingData: $bookingData');
+    print(
+        '🔍 PaymentScreen - bookingData?[bookingId]: ${bookingData?['bookingId']}');
+
+    final id = bookingData?['bookingId'] as String? ?? '';
+    print('🔍 PaymentScreen - final bookingId: $id');
+
+    return id;
+  }
 
   double get finalAmount => totalPrice - discountAmount;
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<PaymentController>(
-        init: controller,
-        tag: 'travel_payment',
-        builder: (controller) {
-          return Scaffold(
-            backgroundColor: isDarkMode ? appDarkBgColor : whiteColor,
-            appBar: commonAppBarWidget(context, titleText: "Payment"),
-            body: SafeArea(
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Booking Summary Card
-                        _buildBookingSummaryCard(),
-                        25.height,
+    return Obx(() {
+      return Scaffold(
+        backgroundColor: isDarkMode ? appDarkBgColor : whiteColor,
+        appBar: commonAppBarWidget(context, titleText: "Payment"),
+        body: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Booking Summary Card
+                    _buildBookingSummaryCard(),
+                    25.height,
 
-                        // Payment Section Header
-                        _buildSectionHeader("Payment Details", Icons.payment),
-                        20.height,
+                    // Payment Section Header
+                    _buildSectionHeader("Payment Details", Icons.payment),
+                    20.height,
 
-                        // Stripe Logo and Secure Payment Info
-                        _buildStripeHeader(),
-                        25.height,
+                    // Stripe Logo and Secure Payment Info
+                    _buildStripeHeader(),
+                    25.height,
 
-                        // Card Holder Name
-                        _buildCardHolderField(),
-                        20.height,
+                    // Payment Method Selection
+                    _buildPaymentMethodSelection(),
+                    25.height,
 
-                        // Card Number
-                        _buildCardNumberField(),
-                        20.height,
+                    // Card Details Section (only show if card payment is selected)
+                    if (!_isUsingPaymentSheet()) ...[
+                      // Card Holder Name
+                      _buildCardHolderField(),
+                      20.height,
 
-                        // Expiry and CVV Row
-                        Row(
-                          children: [
-                            Expanded(child: _buildExpiryField()),
-                            15.width,
-                            Expanded(child: _buildCVVField()),
-                          ],
-                        ),
-                        25.height,
+                      // Card Number
+                      _buildCardNumberField(),
+                      20.height,
 
-                        // Promo Code Section
-                        _buildPromoCodeSection(),
-                        25.height,
+                      // Expiry and CVV Row
+                      Row(
+                        children: [
+                          Expanded(child: _buildExpiryField()),
+                          15.width,
+                          Expanded(child: _buildCVVField()),
+                        ],
+                      ),
+                      25.height,
+                    ],
 
-                        // Price Breakdown
-                        _buildPriceBreakdown(),
-                        30.height,
+                    // Promo Code Section
+                    _buildPromoCodeSection(),
+                    25.height,
 
-                        // Security Features
-                        _buildSecurityFeatures(),
-                        30.height,
+                    // Price Breakdown
+                    _buildPriceBreakdown(),
+                    30.height,
 
-                        // Pay Now Button
-                        _buildPayNowButton(),
-                        20.height,
-                      ],
-                    ),
-                  ),
+                    // Security Features
+                    _buildSecurityFeatures(),
+                    30.height,
+
+                    // Payment Error Display
+                    if (controller.hasError) ...[
+                      _buildErrorDisplay(),
+                      20.height,
+                    ],
+
+                    // Pay Now Button
+                    _buildPayNowButton(),
+                    20.height,
+                  ],
                 ),
               ),
             ),
-          );
-        });
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildBookingSummaryCard() {
@@ -326,6 +377,97 @@ class PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  Widget _buildPaymentMethodSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Payment Method",
+          style: TextStyle(
+            fontSize: textSizeMedium,
+            fontWeight: FontWeight.w600,
+            color: isDarkMode ? whiteColor : appTextColorPrimary,
+          ),
+        ),
+        12.height,
+        Row(
+          children: [
+            Expanded(
+              child: _buildPaymentMethodOption(
+                "Manual Entry",
+                Icons.credit_card,
+                !_isUsingPaymentSheet(),
+                () => setState(() {}),
+              ),
+            ),
+            12.width,
+            Expanded(
+              child: _buildPaymentMethodOption(
+                "Stripe Checkout",
+                Icons.payment,
+                _isUsingPaymentSheet(),
+                () => setState(() {}),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaymentMethodOption(
+    String title,
+    IconData icon,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? appColorPrimary.withAlpha(26)
+              : (isDarkMode
+                  ? appTextColorPrimary.withAlpha(13)
+                  : Colors.grey.withAlpha(26)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? appColorPrimary
+                : (isDarkMode
+                    ? whiteColor.withAlpha(51)
+                    : appTextColorPrimary.withAlpha(51)),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: isSelected
+                  ? appColorPrimary
+                  : (isDarkMode ? whiteColor : appTextColorPrimary),
+              size: 24,
+            ),
+            8.height,
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: textSizeSmall,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: isSelected
+                    ? appColorPrimary
+                    : (isDarkMode ? whiteColor : appTextColorPrimary),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCardHolderField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,6 +490,7 @@ class PaymentScreenState extends State<PaymentScreen> {
           decoration: _buildInputDecoration(
             hintText: "Enter cardholder name",
             prefixIcon: Icons.person,
+            errorText: controller.getFieldError('cardHolderName'),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -355,6 +498,7 @@ class PaymentScreenState extends State<PaymentScreen> {
             }
             return null;
           },
+          onChanged: (value) => _validateForm(),
         ),
       ],
     );
@@ -388,11 +532,13 @@ class PaymentScreenState extends State<PaymentScreen> {
             hintText: "1234 5678 9012 3456",
             prefixIcon: Icons.credit_card,
             suffixWidget: _getCardTypeIcon(),
+            errorText: controller.getFieldError('cardNumber'),
           ),
           onChanged: (value) {
             setState(() {
               cardType = _getCardType(value);
             });
+            _validateForm();
           },
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -435,7 +581,9 @@ class PaymentScreenState extends State<PaymentScreen> {
           decoration: _buildInputDecoration(
             hintText: "MM/YY",
             prefixIcon: Icons.calendar_today,
+            errorText: controller.getFieldError('expiryDate'),
           ),
+          onChanged: (value) => _validateForm(),
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Expiry date required';
@@ -478,7 +626,9 @@ class PaymentScreenState extends State<PaymentScreen> {
           decoration: _buildInputDecoration(
             hintText: "123",
             prefixIcon: Icons.lock,
+            errorText: controller.getFieldError('cvv'),
           ),
+          onChanged: (value) => _validateForm(),
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'CVV required';
@@ -743,10 +893,45 @@ class PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  Widget _buildErrorDisplay() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.withAlpha(26),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withAlpha(51)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error, color: Colors.red, size: 20),
+          12.width,
+          Expanded(
+            child: Text(
+              controller.errorMessage,
+              style: const TextStyle(
+                color: Colors.red,
+                fontSize: textSizeSmall,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: controller.clearPaymentErrors,
+            icon: const Icon(Icons.close, color: Colors.red, size: 20),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPayNowButton() {
     return GradientElevatedButton(
-      onPressed: _processPayment,
-      text: "Pay $currency${finalAmount.toStringAsFixed(2)}",
+      onPressed: controller.isLoading || !_canProcessPayment()
+          ? () {}
+          : _processPayment,
+      text: controller.isLoading
+          ? "Processing..."
+          : "Pay $currency${finalAmount.toStringAsFixed(2)}",
       height: 55,
     );
   }
@@ -755,6 +940,7 @@ class PaymentScreenState extends State<PaymentScreen> {
     required String hintText,
     required IconData prefixIcon,
     Widget? suffixWidget,
+    String? errorText,
   }) {
     return InputDecoration(
       hintText: hintText,
@@ -769,6 +955,7 @@ class PaymentScreenState extends State<PaymentScreen> {
         size: 20,
       ),
       suffixIcon: suffixWidget,
+      errorText: errorText,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide(
@@ -805,18 +992,53 @@ class PaymentScreenState extends State<PaymentScreen> {
       case 'Visa':
         return Container(
           margin: const EdgeInsets.all(8),
-          child: Image.asset('assets/images/visa.png', width: 30, height: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Text(
+            'VISA',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         );
       case 'Mastercard':
         return Container(
           margin: const EdgeInsets.all(8),
-          child: Image.asset('assets/images/mastercard.png',
-              width: 30, height: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Text(
+            'MC',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         );
       case 'American Express':
         return Container(
           margin: const EdgeInsets.all(8),
-          child: Image.asset('assets/images/amex.png', width: 30, height: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.green,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Text(
+            'AMEX',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         );
       default:
         return const SizedBox.shrink();
@@ -836,17 +1058,38 @@ class PaymentScreenState extends State<PaymentScreen> {
     return '';
   }
 
+  bool _isUsingPaymentSheet() {
+    // You can add logic here to determine payment method
+    // For now, default to manual entry
+    return false;
+  }
+
+  bool _canProcessPayment() {
+    if (bookingId.isEmpty || finalAmount <= 0) return false;
+
+    if (_isUsingPaymentSheet()) {
+      return true; // Stripe will handle validation
+    } else {
+      return _formKey.currentState?.validate() ?? false;
+    }
+  }
+
+  void _validateForm() {
+    if (!_isUsingPaymentSheet()) {
+      controller.validateCardDetails(
+        cardNumber: cardNumberController.text,
+        expiryDate: expiryController.text,
+        cvv: cvvController.text,
+        cardHolderName: cardHolderController.text,
+      );
+    }
+  }
+
   void _applyPromoCode() {
     String promoCode = promoCodeController.text.trim().toUpperCase();
 
     if (promoCode.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a promo code'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _showErrorSnackBar('Please enter a promo code');
       return;
     }
 
@@ -856,45 +1099,161 @@ class PaymentScreenState extends State<PaymentScreen> {
         isPromoApplied = true;
         discountAmount = totalPrice * 0.1; // 10% discount
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Promo code applied successfully!'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _showSuccessSnackBar('Promo code applied successfully!');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid promo code'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _showErrorSnackBar('Invalid promo code');
     }
   }
 
   void _processPayment() async {
-    if (_formKey.currentState!.validate()) {
-      // Show loading
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+    print('🔍 PROCESS_PAYMENT - Called _processPayment');
+    print(
+        '🔍 PROCESS_PAYMENT - Get.arguments at payment time: ${Get.arguments}');
+
+    // Call bookingId getter and see what happens
+    final currentBookingId = bookingId;
+    print('🔍 PROCESS_PAYMENT - bookingId from getter: "$currentBookingId"');
+
+    final currentFinalAmount = finalAmount;
+    print('🔍 PROCESS_PAYMENT - finalAmount from getter: $currentFinalAmount');
+
+    if (!_canProcessPayment()) {
+      print('❌ PROCESS_PAYMENT - _canProcessPayment returned false');
+      return;
+    }
+
+    try {
+      _isProcessing = true;
+      controller.clearPaymentErrors();
+      _showLoadingDialog();
+
+      print('🔍 PROCESS_PAYMENT - About to call createPaymentIntent');
+      print('🔍 PROCESS_PAYMENT - Will pass bookingId: "$currentBookingId"');
+      print('🔍 PROCESS_PAYMENT - Will pass amount: $currentFinalAmount');
+
+      await controller.createPaymentIntent(
+        bookingId: currentBookingId,
+        amount: currentFinalAmount,
+        currency: 'usd',
+        metadata: {
+          'package_name': package?.name ?? '',
+          'traveler_count': travelerCount.toString(),
+          'promo_applied': isPromoApplied.toString(),
+          if (isPromoApplied) 'discount_amount': discountAmount.toString(),
+        },
       );
 
-      // Simulate payment processing
-      await Future.delayed(const Duration(seconds: 2));
-
       // Close loading dialog
-      Navigator.of(context).pop();
+      Get.back();
 
-      // Here you would integrate with Stripe's payment processing
-      // For now, we'll show the success dialog
-      await BookingSuccessDialog().customDialog(context, isDarkMode);
+      // Process payment based on selected method
+      if (_isUsingPaymentSheet()) {
+        await controller.presentPaymentSheet();
+      } else {
+        // Validate form one more time
+        if (!_formKey.currentState!.validate()) {
+          _showErrorSnackBar('Please fill in all required fields correctly');
+          return;
+        }
+
+        await controller.confirmPaymentWithCard(
+          cardNumber: cardNumberController.text,
+          expiryDate: expiryController.text,
+          cvv: cvvController.text,
+          cardHolderName: cardHolderController.text,
+          billingDetails: BillingDetails(
+            name: cardHolderController.text,
+            // email: controller._authController.userEmail,
+          ),
+        );
+      }
+    } catch (e) {
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      print('❌ Payment processing error: $e');
+      _showErrorSnackBar(e.toString());
+    } finally {
+      _isProcessing = false;
     }
+  }
+
+  void _handlePaymentSuccess() {
+    _isProcessing = false;
+
+    // Close any open dialogs
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+
+    // Show success dialog
+    BookingSuccessDialog().customDialog(context, isDarkMode);
+  }
+
+  void _handlePaymentFailure() {
+    _isProcessing = false;
+
+    // Close any open dialogs
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+  }
+
+  void _handlePaymentCancellation() {
+    _isProcessing = false;
+
+    // Close any open dialogs
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+
+    _showErrorSnackBar('Payment was cancelled');
+  }
+
+  void _showLoadingDialog() {
+    Get.dialog(
+      WillPopScope(
+        onWillPop: () async => false, // Prevent back button during processing
+        child: const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Processing Payment...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 }
 

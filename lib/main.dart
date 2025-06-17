@@ -1,4 +1,5 @@
 import 'package:royaldusk_mobile_app/app/controller/auth_controller.dart';
+import 'package:royaldusk_mobile_app/app/services/stripe_service.dart';
 import 'package:royaldusk_mobile_app/route/my_route.dart';
 import 'package:royaldusk_mobile_app/theme/styles.dart';
 import 'package:royaldusk_mobile_app/utils/flutter_web_frame/flutter_web_frame.dart';
@@ -12,8 +13,21 @@ import 'app/controller/theme_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeStripe();
   await GetStorage.init();
   runApp(const MyApp());
+}
+
+Future<void> initializeStripe() async {
+  try {
+    // Initialize Stripe service
+    await StripeService.init();
+
+    print('✅ Stripe initialized successfully');
+  } catch (e) {
+    print('❌ Failed to initialize Stripe: $e');
+    // Handle initialization error as needed
+  }
 }
 
 class MyApp extends StatefulWidget {
