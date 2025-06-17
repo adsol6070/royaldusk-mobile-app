@@ -1,4 +1,4 @@
-package com.example.royaldusk_mobile_app
+package com.royaldusk.tours
 
 import io.flutter.embedding.android.FlutterActivity
 
