@@ -20,14 +20,11 @@ class SplashScreen extends StatefulWidget {
 class SplashScreenState extends State<SplashScreen> {
   late SplashController controller;
 
-
   @override
   void initState() {
     super.initState();
     controller = SplashController();
-
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +34,7 @@ class SplashScreenState extends State<SplashScreen> {
         // theme: theme,
         builder: (controller) {
           return Scaffold(
-          /*  backgroundColor: themeChangeProvider.darkTheme
+            /*  backgroundColor: themeChangeProvider.darkTheme
                 ? appBackgroundColorDark
                 : whiteColor,*/
             body: Stack(
@@ -50,8 +47,8 @@ class SplashScreenState extends State<SplashScreen> {
                     10.width,
                     Text(appName.toUpperCase(),
                         style: TextStyle(
-                            fontFamily: GoogleFonts.saira().fontFamily,
-                            fontSize: 26,
+                          fontFamily: GoogleFonts.saira().fontFamily,
+                          fontSize: 26,
                         )),
                   ],
                 ),

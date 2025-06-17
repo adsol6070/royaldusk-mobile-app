@@ -8,25 +8,24 @@ import 'package:nb_utils/nb_utils.dart';
 
 import '../../../constant/app_images.dart';
 import '../../../route/my_route.dart';
-import '../../controller/popular_package_detail_controller.dart';
-import '../../model/popular_packages.dart';
-import 'custom_review_rating_view.dart';
-import '../../controller/my_saved_list_controller.dart';
+import '../../controller/all_package_detail_controller.dart';
+import '../../model/all_packages.dart';
+import '../popular_package/custom_review_rating_view.dart';
 
-class PopularPackageDetailScreen extends StatefulWidget {
-  final PopularPackage popularPackage;
+class AllPackageDetailScreen extends StatefulWidget {
+  final AllPackage allPackage;
 
-  const PopularPackageDetailScreen({Key? key, required this.popularPackage})
+  const AllPackageDetailScreen({Key? key, required this.allPackage})
       : super(key: key);
 
   @override
-  PopularPackageDetailScreenState createState() =>
-      PopularPackageDetailScreenState();
+  AllPackageDetailScreenState createState() =>
+      AllPackageDetailScreenState();
 }
 
-class PopularPackageDetailScreenState
-    extends State<PopularPackageDetailScreen> {
-  late PopularPackageDetailController controller;
+class AllPackageDetailScreenState
+    extends State<AllPackageDetailScreen> {
+  late AllPackageDetailController controller;
   late bool isDarkMode;
 
   // Enhanced color scheme
@@ -54,19 +53,16 @@ class PopularPackageDetailScreenState
   Color get shadowColor =>
       isDarkMode ? Colors.black.withAlpha(77) : Colors.black.withAlpha(26);
 
-  late MySavedController savedController;
-
   @override
   void initState() {
     super.initState();
-    controller = PopularPackageDetailController();
-    savedController = Get.put(MySavedController());
+    controller = AllPackageDetailController();
     isDarkMode = controller.themeController.isDarkMode;
   }
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<PopularPackageDetailController>(
+    return GetBuilder<AllPackageDetailController>(
         init: controller,
         tag: 'travel_popular_packages_detail',
         builder: (controller) {
@@ -79,7 +75,7 @@ class PopularPackageDetailScreenState
                   child: Stack(
                     children: [
                       commonCacheImageWidget(
-                        widget.popularPackage.imageUrl,
+                        widget.allPackage.imageUrl,
                         context.w / 1,
                         fit: BoxFit.cover,
                       ),
@@ -202,7 +198,7 @@ class PopularPackageDetailScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.popularPackage.name,
+                    widget.allPackage.name,
                     style: GoogleFonts.poppins(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -217,7 +213,7 @@ class PopularPackageDetailScreenState
                       6.width,
                       Expanded(
                         child: Text(
-                          widget.popularPackage.location.name,
+                          widget.allPackage.location.name,
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             color: textSecondaryColor,
@@ -227,7 +223,7 @@ class PopularPackageDetailScreenState
                       ),
                     ],
                   ),
-                  if (widget.popularPackage.tag.isNotEmpty) ...[
+                  if (widget.allPackage.tag.isNotEmpty) ...[
                     12.height,
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -246,7 +242,7 @@ class PopularPackageDetailScreenState
                         ],
                       ),
                       child: Text(
-                        widget.popularPackage.tag,
+                        widget.allPackage.tag,
                         style: GoogleFonts.inter(
                           color: Colors.white,
                           fontSize: 12,
@@ -270,26 +266,20 @@ class PopularPackageDetailScreenState
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: primaryColor.withOpacity(0.2)),
                   ),
-                  child: GetBuilder<MySavedController>(
-                    builder: (controller) => Obx(() => Icon(
-                          controller.isPackageSaved(widget.popularPackage.id)
-                              ? Icons.bookmark
-                              : Icons.bookmark_border,
-                          color: controller
-                                  .isPackageSaved(widget.popularPackage.id)
-                              ? primaryColor
-                              : primaryColor.withOpacity(0.5),
-                          size: 20,
-                        )),
+                  child: SvgPicture.asset(
+                    bookmarkOnlyIcon,
+                    width: 20,
+                    height: 20,
+                    colorFilter:
+                        ColorFilter.mode(primaryColor, BlendMode.srcIn),
                   ),
-                ).onTap(() {
-                  savedController.togglePackageSave(widget.popularPackage);
-                }),
+                ).onTap(() {}),
+                16.height,
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      "${widget.popularPackage.currency} ${widget.popularPackage.price}",
+                      "${widget.allPackage.currency} ${widget.allPackage.price}",
                       style: GoogleFonts.poppins(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -321,7 +311,7 @@ class PopularPackageDetailScreenState
           child: _buildInfoCard(
             icon: Icons.schedule_outlined,
             title: "Duration",
-            value: "${widget.popularPackage.duration} days",
+            value: "${widget.allPackage.duration} days",
             color: accentTeal,
           ),
         ),
@@ -330,7 +320,7 @@ class PopularPackageDetailScreenState
           child: _buildInfoCard(
             icon: Icons.hotel_outlined,
             title: "Hotels",
-            value: widget.popularPackage.hotels,
+            value: widget.allPackage.hotels,
             color: warningOrange,
           ),
         ),
@@ -415,7 +405,7 @@ class PopularPackageDetailScreenState
             child: Row(
               children: [
                 CustomReviewRatingViewScreen(
-                  reviewCount: widget.popularPackage.review,
+                  reviewCount: widget.allPackage.review,
                   rating: 4.7,
                 ),
                 12.width,
@@ -520,7 +510,7 @@ class PopularPackageDetailScreenState
             border: Border.all(color: primaryColor.withOpacity(0.2)),
           ),
           child: Text(
-            widget.popularPackage.description,
+            widget.allPackage.description,
             style: GoogleFonts.inter(
               color: textPrimaryColor,
               fontSize: 15,
@@ -535,7 +525,7 @@ class PopularPackageDetailScreenState
   }
 
   Widget _buildFeaturesSection() {
-    if (widget.popularPackage.features.isEmpty) return const SizedBox.shrink();
+    if (widget.allPackage.features.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -549,7 +539,7 @@ class PopularPackageDetailScreenState
             border: Border.all(color: accentTeal.withOpacity(0.1)),
           ),
           child: Column(
-            children: widget.popularPackage.features
+            children: widget.allPackage.features
                 .map((feature) => _buildFeatureItem(feature.name, primaryColor))
                 .toList(),
           ),
@@ -588,7 +578,7 @@ class PopularPackageDetailScreenState
   }
 
   Widget _buildInclusionsSection() {
-    if (widget.popularPackage.inclusions.isEmpty)
+    if (widget.allPackage.inclusions.isEmpty)
       return const SizedBox.shrink();
 
     return Column(
@@ -604,7 +594,7 @@ class PopularPackageDetailScreenState
             border: Border.all(color: successGreen.withOpacity(0.1)),
           ),
           child: Column(
-            children: widget.popularPackage.inclusions
+            children: widget.allPackage.inclusions
                 .map((inclusion) =>
                     _buildFeatureItem(inclusion.name, successGreen))
                 .toList(),
@@ -615,7 +605,7 @@ class PopularPackageDetailScreenState
   }
 
   Widget _buildExclusionsSection() {
-    if (widget.popularPackage.exclusions.isEmpty)
+    if (widget.allPackage.exclusions.isEmpty)
       return const SizedBox.shrink();
 
     return Column(
@@ -631,7 +621,7 @@ class PopularPackageDetailScreenState
             border: Border.all(color: errorRed.withOpacity(0.1)),
           ),
           child: Column(
-            children: widget.popularPackage.exclusions
+            children: widget.allPackage.exclusions
                 .map((exclusion) => _buildExclusionItem(exclusion.name))
                 .toList(),
           ),
@@ -670,7 +660,7 @@ class PopularPackageDetailScreenState
   }
 
   Widget _buildItinerarySection() {
-    if (widget.popularPackage.itineraries.isEmpty)
+    if (widget.allPackage.itineraries.isEmpty)
       return const SizedBox.shrink();
 
     return Column(
@@ -678,7 +668,7 @@ class PopularPackageDetailScreenState
       children: [
         _buildSectionHeader(
             "Day-by-Day Itinerary", Icons.map_outlined, warningOrange),
-        ...widget.popularPackage.itineraries.asMap().entries.map((entry) {
+        ...widget.allPackage.itineraries.asMap().entries.map((entry) {
           int index = entry.key;
           ItineraryItem item = entry.value;
 
@@ -763,7 +753,7 @@ class PopularPackageDetailScreenState
   }
 
   Widget _buildImportantInfoSection() {
-    if (widget.popularPackage.importantInfo.isEmpty)
+    if (widget.allPackage.importantInfo.isEmpty)
       return const SizedBox.shrink();
 
     return Column(
@@ -792,7 +782,7 @@ class PopularPackageDetailScreenState
               16.width,
               Expanded(
                 child: Text(
-                  widget.popularPackage.importantInfo,
+                  widget.allPackage.importantInfo,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: textPrimaryColor,
@@ -815,15 +805,15 @@ class PopularPackageDetailScreenState
         _buildSectionHeader(
             "Policies & Terms", Icons.policy_outlined, mediumGray),
         _buildPolicyItem("Booking Policy",
-            widget.popularPackage.policy.bookingPolicy, Icons.book_outlined),
+            widget.allPackage.policy.bookingPolicy, Icons.book_outlined),
         _buildPolicyItem(
             "Cancellation Policy",
-            widget.popularPackage.policy.cancellationPolicy,
+            widget.allPackage.policy.cancellationPolicy,
             Icons.cancel_outlined),
         _buildPolicyItem("Payment Terms",
-            widget.popularPackage.policy.paymentTerms, Icons.payment_outlined),
+            widget.allPackage.policy.paymentTerms, Icons.payment_outlined),
         _buildPolicyItem("Visa Details",
-            widget.popularPackage.policy.visaDetail, Icons.assignment_outlined),
+            widget.allPackage.policy.visaDetail, Icons.assignment_outlined),
       ],
     );
   }
@@ -948,7 +938,7 @@ class PopularPackageDetailScreenState
           child: ElevatedButton(
             onPressed: () {
               Get.toNamed(MyRoutes.confirmationScreen,
-                  arguments: widget.popularPackage);
+                  arguments: widget.allPackage);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.transparent,

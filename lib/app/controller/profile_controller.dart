@@ -1,21 +1,47 @@
-import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import '../controller/theme_controller.dart';
+import 'package:dio/dio.dart' as dio;
+import '../controller/auth_controller.dart';
 
 class ProfileController extends GetxController {
-  final ThemeController themeController = Get.put(ThemeController());
+  static ProfileController get to => Get.find();
 
-  TextEditingController emailController=TextEditingController(text: 'Jonathan Smith');
-  TextEditingController nameController=TextEditingController(text: 'jonathansmith@gmail.com');
-  TextEditingController phoneController=TextEditingController(text: '+00 123 456 789');
+  final RxBool isUpdating = false.obs;
+  final RxString updateError = ''.obs;
+  final RxString updateSuccess = ''.obs;
 
-  FocusNode f1 = FocusNode();
-  FocusNode f2 = FocusNode();
-  FocusNode f3 = FocusNode();
+  /// Function to update the user name
+  Future<void> updateUserName(String userId, String newName) async {
+    if (newName.trim().isEmpty) {
+      updateError.value = 'Name cannot be empty';
+      return;
+    }
 
-  final formKey = GlobalKey<FormState>();
+    isUpdating.value = true;
+    updateError.value = '';
+    updateSuccess.value = '';
 
-  final BuildContext context;
+    try {
+      final dioClient = AuthController.to.dioClient;
 
-  ProfileController(this.context);
+      final response = await dioClient.patch(
+        '/user-service/api/users/$userId',
+        data: {'name': newName.trim()},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        updateSuccess.value = 'Profile updated successfully';
+
+        // Refresh user data
+        await AuthController.to.refreshUserData();
+      } else {
+        updateError.value = 'Failed to update profile';
+      }
+    } on dio.DioException catch (e) {
+      updateError.value = e.response?.data['message'] ?? 'Something went wrong';
+    } catch (e) {
+      updateError.value = 'Unexpected error: ${e.toString()}';
+    } finally {
+      isUpdating.value = false;
+    }
+  }
 }

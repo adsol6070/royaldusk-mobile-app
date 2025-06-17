@@ -3,9 +3,9 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 import '../controller/theme_controller.dart';
-import '../model/popular_packages.dart';
+import '../model/all_packages.dart';
 
-class PopularPackagesController extends GetxController {
+class AllPackagesController extends GetxController {
   final ThemeController themeController = Get.put(ThemeController());
 
   RxString selectedOption = '1'.obs;
@@ -14,10 +14,10 @@ class PopularPackagesController extends GetxController {
     selectedOption.value = option;
   }
 
-  final RxList<PopularPackage> myData = <PopularPackage>[].obs;
+  final RxList<AllPackage> myAllPackagesData = <AllPackage>[].obs;
 
-  Future<List<PopularPackage>> fetchData() async {
-    myData.clear();
+  Future<List<AllPackage>> fetchData() async {
+    myAllPackagesData.clear();
 
     try {
       final response = await http.get(
@@ -35,18 +35,18 @@ class PopularPackagesController extends GetxController {
         print('Parsed Data List Length: ${jsonArray.length}');
 
         for (var item in jsonArray) {
-          final pkg = PopularPackage.fromJson(item);
+          final pkg = AllPackage.fromJson(item);
           print('Parsed Package: ${pkg.name}');
-          myData.add(pkg);
+          myAllPackagesData.add(pkg);
         }
 
         /// ✅ Log full myData contents
-        print("Final myData length: ${myData.length}");
-        for (int i = 0; i < myData.length; i++) {
-          print("myData[$i] => ID: ${myData[i].id}, Name: ${myData[i].name}");
+        print("Final myData length: ${myAllPackagesData.length}");
+        for (int i = 0; i < myAllPackagesData.length; i++) {
+          print("myData[$i] => ID: ${myAllPackagesData[i].id}, Name: ${myAllPackagesData[i].name}");
         }
 
-        return myData;
+        return myAllPackagesData;
       } else {
         throw Exception(
             "Failed to load packages (Status: ${response.statusCode})");

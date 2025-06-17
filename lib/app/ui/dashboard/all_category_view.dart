@@ -3,39 +3,29 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:royaldusk_mobile_app/widgets/app_widget.dart';
-
 import '../../../constant/app_colors.dart';
 import '../../../constant/app_images.dart';
-import '../../model/popular_packages.dart';
-import '../../controller/my_saved_list_controller.dart';
-import '../popular_package/popular_package_detail_screen.dart';
+import '../../model/all_packages.dart';
+import '../all_packages/all_package_detail_screen.dart';
 
-class PopularCategoryView extends StatefulWidget {
-  final PopularPackage popularPackage;
+class AllCategoryView extends StatefulWidget {
+  final AllPackage allPackage;
 
-  const PopularCategoryView(this.popularPackage, {super.key});
+  const AllCategoryView(this.allPackage, {super.key});
 
   @override
-  PopularCategoryViewScreenState createState() =>
-      PopularCategoryViewScreenState();
+  AllCategoryViewScreenState createState() =>
+      AllCategoryViewScreenState();
 }
 
-class PopularCategoryViewScreenState extends State<PopularCategoryView> {
-  late MySavedController savedController;
-
-  @override
-  void initState() {
-    super.initState();
-    savedController = Get.put(MySavedController());
-  }
-
+class AllCategoryViewScreenState extends State<AllCategoryView> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
         Get.to(
-          PopularPackageDetailScreen(
-            popularPackage: widget.popularPackage,
+          AllPackageDetailScreen(
+            allPackage: widget.allPackage,
           ),
         );
       },
@@ -56,12 +46,8 @@ class PopularCategoryViewScreenState extends State<PopularCategoryView> {
             // Background image
             ClipRRect(
               borderRadius: BorderRadius.circular(15.0),
-              child: commonCacheImageWidget(
-                widget.popularPackage.imageUrl,
-                200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              child: commonCacheImageWidget(widget.allPackage.imageUrl, 200,
+                  width: double.infinity, fit: BoxFit.cover),
             ),
 
             // Transparent overlay
@@ -76,8 +62,8 @@ class PopularCategoryViewScreenState extends State<PopularCategoryView> {
               width: double.infinity,
             ),
 
-            // Rating badge (if exists)
-            if (widget.popularPackage.review > 0)
+            // Rating Badge (optional if rating exists)
+            if (widget.allPackage.review > 0)
               Positioned(
                 top: 10,
                 left: 10,
@@ -97,7 +83,7 @@ class PopularCategoryViewScreenState extends State<PopularCategoryView> {
                         ),
                         5.width,
                         Text(
-                            "${(widget.popularPackage.review / 1000).toStringAsFixed(1)}k"),
+                            "${(widget.allPackage.review / 1000).toStringAsFixed(1)}k"),
                       ],
                     ),
                   ),
@@ -118,7 +104,7 @@ class PopularCategoryViewScreenState extends State<PopularCategoryView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.popularPackage.name,
+                          widget.allPackage.name,
                           textAlign: TextAlign.start,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -129,7 +115,7 @@ class PopularCategoryViewScreenState extends State<PopularCategoryView> {
                           ),
                         ),
                         Text(
-                          widget.popularPackage.description,
+                          widget.allPackage.description,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -142,22 +128,12 @@ class PopularCategoryViewScreenState extends State<PopularCategoryView> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      savedController.togglePackageSave(widget.popularPackage);
+                      // Bookmark logic (optional)
                     },
-                    child: GetBuilder<MySavedController>(
-                      builder: (controller) => Obx(() {
-                        bool isSaved = controller
-                            .isPackageSaved(widget.popularPackage.id);
-                        return Icon(
-                          isSaved
-                              ? Icons.bookmark
-                              : Icons.bookmark_border,
-                          color: isSaved
-                              ? Get.theme.primaryColor
-                              : Colors.white.withOpacity(0.8),
-                          size: 28,
-                        );
-                      }),
+                    child: SvgPicture.asset(
+                      bookmarkIcon,
+                      height: 32,
+                      width: 32,
                     ),
                   ),
                 ],

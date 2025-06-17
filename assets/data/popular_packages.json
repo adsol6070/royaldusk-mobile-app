@@ -1,403 +1,324 @@
 {
   "Packages": [
     {
-      "id": 1,
-      "name": "The Blue House",
-      "image": "https://i.ibb.co/rspHmCJ/swimming-pool-74190-2104.jpg",
-      "price": "$100",
-      "location": "London, England",
-      "details": "2 days 3 night full package",
-      "rating": 3.5,
-      "review": "3.9K Reviews",
-      "full_details": "The Lind Boracay resort has its own train station and can be reached from either lau spezia or levantonipo. From la spezia, take the local train trendo regionale in the direction of sestrin levante and get off at the first stop. From levanto, take the regional train in direction of la spezia centrale.",
-      "images": [
+      "id": "pkg-002",
+      "name": "Paris Getaway & Eiffel Stay",
+      "slug": "paris-getaway-eiffel",
+      "description": "Romantic escape in the heart of Paris with iconic Eiffel Tower views.",
+      "review": 4200,
+      "currency": "EUR",
+      "importantInfo": "Passport must be valid for at least 6 months.",
+      "locationId": "loc-002",
+      "location": {
+        "id": "loc-002",
+        "name": "Paris, France"
+      },
+      "price": 850.0,
+      "duration": 5,
+      "availability": "Available",
+      "hotels": "Hotel Le Paris, Eiffel Luxe",
+      "imageUrl": "https://i.ibb.co/3zV4TCb/istockphoto-1208302982-612x612.jpg",
+      "categoryID": "cat-002",
+      "category": {
+        "id": "cat-002",
+        "name": "Romantic Tours"
+      },
+      "tag": "Top",
+      "features": [
+        { "feature": { "id": "f3", "name": "City View Room" } },
+        { "feature": { "id": "f4", "name": "Free Airport Shuttle" } }
+      ],
+      "itineraries": [
         {
-          "url": "https://i.ibb.co/R4PM33B/IMG-20191010-122215.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/N935zvx/1569323297894.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/VwwpFjm/download-1.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/N935zvx/1569323297894.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/X7HjF3T/1958491-wonderland-resort-image-16-KF3q-Sd.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/TM65xNG/90abe31e74dd11e6b4370022195573b9.jpgō"
+          "day": 1,
+          "itinerary": {
+            "title": "Arrival in Paris",
+            "description": "Check-in and evening Seine cruise."
+          }
         }
       ],
-      "Reviews": [
+      "inclusions": [
         {
-          "profile_url": "https://i.ibb.co/RP3hBV7/portrait-white-man-isolated-53876-40306.jpg",
-          "review": "1k",
-          "rating": 5.0
+          "id": "39b0d69c-643d-48e8-a330-bae21995ef8e",
+          "name": "hotels"
         },
         {
-          "profile_url": "https://i.ibb.co/mH2FsCT/images.jpg",
-          "review": "2k",
-          "rating": 4.8
-        },
-        {
-          "profile_url": "https://i.ibb.co/Kzcgt51/8bfda32f-0b52-4238-b990-f98a99eef9bb.png",
-          "review": "2k",
-          "rating": 3.2
-        },
-        {
-          "profile_url": "https://i.ibb.co/dt7RZDz/96a8ca08-b016-4531-ace8-93249ce2d47b.png",
-          "review": "2k",
-          "rating": 1.0
+          "id": "f8856791-d6b8-4c43-a0e1-f6af3f54a17f",
+          "name": "beverages"
         }
       ],
-      "package_included": [
+      "exclusions": [
         {
-          "id": 1,
-          "name": "Flight",
-          "image": "https://i.ibb.co/nrcndkS/Plane.png"
+          "id": "f34459d2-ab19-4073-be05-23dfb7776f9f",
+          "name": "drinks"
         },
         {
-          "id": 2,
-          "name": "Transfer",
-          "image": "https://i.ibb.co/vmwhN3n/Car.png"
-        },
-        {
-          "id": 3,
-          "name": "Hotel",
-          "image": "https://i.ibb.co/6rd0LW6/Hotel.png"
-        },
-        {
-          "id": 4,
-          "name": "Food",
-          "image": "https://i.ibb.co/LN62qtf/Food.png"
+          "id": "bb353d7e-3833-4753-9e7e-e1dfa770a626",
+          "name": "camping"
         }
       ],
-      "ticket_list": [
-        {
-          "from": {
-            "code": "NYC",
-            "name": "New York"
-          },
-          "to": {
-            "code": "LDN",
-            "name": "London"
-          },
-          "flying_time": "19:00",
-          "flying_date": "June 07, 2023",
-          "departure_date": "June 08, 2023",
-          "departure_time": "01:30",
-          "number": 23,
-          "duration": "06h 30m",
-          "airlines_name": "American Airlines",
-          "price": 160.00,
-          "logo_url": "https://i.ibb.co/MS24gC4/Ellipse.png"
-        },
-        {
-          "from": {
-            "code": "NYC",
-            "name": "New York"
-          },
-          "to": {
-            "code": "LDN",
-            "name": "London"
-          },
-          "flying_time": "19:00",
-          "flying_date": "June 07, 2023",
-          "departure_date": "June 08, 2023",
-          "departure_time": "02:00",
-          "number": 23,
-          "duration": "07h 00m",
-          "price": 140.00,
-          "airlines_name": "Lufthansa Airlines",
-          "logo_url": "https://i.ibb.co/rmjLKhk/Ellipse-1.png"
-        }
-      ],
-      "hotel_list": [
-        {
-          "url": "https://i.ibb.co/vhRjMVx/blue-sea-beach-resort.jpg",
-          "name": "Sea Beach Hotel",
-          "price": "17.25",
-          "rating": 4.9
-        },{
-          "url": "https://i.ibb.co/jf8yKBR/Poo-L-480x434.jpg",
-          "name": "Swiming  Pool Hotel",
-          "price": "19.95",
-          "rating": 4.8
-        },{
-          "url": "https://i.ibb.co/Dwv7WRM/expediav2-2564409-a391de-502539.jpg",
-          "name": "Beach Hotel",
-          "price": "20.95",
-          "rating": 4.8
-        }
-      ]
+      "policy": {
+        "bookingPolicy": "Book 20 days in advance.",
+        "visaDetail": "Schengen visa required.",
+        "cancellationPolicy": "Partial refund after 72 hrs.",
+        "paymentTerms": "Full payment at booking."
+      }
     },
     {
-      "id": 2,
-      "name": "Apanemo Resort",
-      "image": "https://i.ibb.co/tQcg7Bg/pexels-thorsten-technoman-338504.jpg",
-      "price": "$100",
-      "location": "Lisbon, Portugal",
-      "details": "2 days 3 night full package",
-      "rating": 5.0,
-      "review": "3.9K Reviews",
-      "full_details": "The Lind Boracay resort has its own train station and can be reached from either lau spezia or levantonipo. From la spezia, take the local train trendo regionale in the direction of sestrin levante and get off at the first stop. From levanto, take the regional train in direction of la spezia centrale.",
-      "images": [
+      "id": "pkg-003",
+      "name": "Dubai Desert Adventure",
+      "slug": "dubai-desert-adventure",
+      "description": "Thrilling desert safaris and luxury city experiences in Dubai.",
+      "review": 3100,
+      "currency": "AED",
+      "importantInfo": "Travel insurance mandatory.",
+      "locationId": "loc-003",
+      "location": {
+        "id": "loc-003",
+        "name": "Dubai, UAE"
+      },
+      "price": 1500.0,
+      "duration": 6,
+      "availability": "Available",
+      "hotels": "Burj Stay, Desert Villas",
+      "imageUrl": "https://i.ibb.co/yFYmpZW/images.jpg",
+      "categoryID": "cat-003",
+      "category": {
+        "id": "cat-003",
+        "name": "Adventure"
+      },
+      "tag": "Popular",
+      "features": [
+        { "feature": { "id": "f5", "name": "Desert Safari" } },
+        { "feature": { "id": "f6", "name": "Luxury Hotel" } }
+      ],
+      "itineraries": [
         {
-          "url": "https://i.ibb.co/R4PM33B/IMG-20191010-122215.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/N935zvx/1569323297894.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/VwwpFjm/download-1.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/N935zvx/1569323297894.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/X7HjF3T/1958491-wonderland-resort-image-16-KF3q-Sd.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/TM65xNG/90abe31e74dd11e6b4370022195573b9.jpgō"
+          "day": 2,
+          "itinerary": {
+            "title": "Desert Safari",
+            "description": "4x4 dune bashing and BBQ dinner under stars."
+          }
         }
       ],
-      "Reviews": [
+      "inclusions": [
         {
-          "profile_url": "https://i.ibb.co/RP3hBV7/portrait-white-man-isolated-53876-40306.jpg",
-          "review": "1k",
-          "rating": 5.0
+          "id": "39b0d69c-643d-48e8-a330-bae21995ef8e",
+          "name": "hotels"
         },
         {
-          "profile_url": "https://i.ibb.co/mH2FsCT/images.jpg",
-          "review": "2k",
-          "rating": 4.8
-        },
-        {
-          "profile_url": "https://i.ibb.co/Kzcgt51/8bfda32f-0b52-4238-b990-f98a99eef9bb.png",
-          "review": "2k",
-          "rating": 3.2
-        },
-        {
-          "profile_url": "https://i.ibb.co/dt7RZDz/96a8ca08-b016-4531-ace8-93249ce2d47b.png",
-          "review": "2k",
-          "rating": 1.0
+          "id": "f8856791-d6b8-4c43-a0e1-f6af3f54a17f",
+          "name": "beverages"
         }
       ],
-      "package_included": [
+      "exclusions": [
         {
-          "id": 1,
-          "name": "Flight",
-          "image": "https://i.ibb.co/nrcndkS/Plane.png"
+          "id": "f34459d2-ab19-4073-be05-23dfb7776f9f",
+          "name": "drinks"
         },
         {
-          "id": 2,
-          "name": "Transfer",
-          "image": "https://i.ibb.co/vmwhN3n/Car.png"
-        },
-        {
-          "id": 3,
-          "name": "Hotel",
-          "image": "https://i.ibb.co/6rd0LW6/Hotel.png"
-        },
-        {
-          "id": 4,
-          "name": "Food",
-          "image": "https://i.ibb.co/LN62qtf/Food.png"
+          "id": "bb353d7e-3833-4753-9e7e-e1dfa770a626",
+          "name": "camping"
         }
       ],
-      "ticket_list": [
-        {
-          "from": {
-            "code": "NYC",
-            "name": "New York"
-          },
-          "to": {
-            "code": "LDN",
-            "name": "London"
-          },
-          "flying_time": "19:00",
-          "flying_date": "June 07, 2023",
-          "departure_date": "June 08, 2023",
-          "departure_time": "01:30",
-          "number": 23,
-          "duration": "06h 30m",
-          "airlines_name": "American Airlines",
-          "price": 160.00,
-          "logo_url": "https://i.ibb.co/MS24gC4/Ellipse.png"
-        },
-        {
-          "from": {
-            "code": "NYC",
-            "name": "New York"
-          },
-          "to": {
-            "code": "LDN",
-            "name": "London"
-          },
-          "flying_time": "19:00",
-          "flying_date": "June 07, 2023",
-          "departure_date": "June 08, 2023",
-          "departure_time": "02:00",
-          "number": 23,
-          "duration": "07h 00m",
-          "airlines_name": "Lufthansa Airlines",
-          "price": 140.00,
-          "logo_url": "https://i.ibb.co/rmjLKhk/Ellipse-1.png"
-        }
-      ],
-      "hotel_list": [
-        {
-          "url": "https://i.ibb.co/vhRjMVx/blue-sea-beach-resort.jpg",
-          "name": "Sea Beach Hotel",
-          "price": "17.25",
-          "rating": 4.9
-        },{
-          "url": "https://i.ibb.co/jf8yKBR/Poo-L-480x434.jpg",
-          "name": "Swiming  Pool Hotel",
-          "price": "19.95",
-          "rating": 4.8
-        },{
-          "url": "https://i.ibb.co/Dwv7WRM/expediav2-2564409-a391de-502539.jpg",
-          "name": "Beach Hotel",
-          "price": "20.95",
-          "rating": 4.8
-        }
-      ]
+      "policy": {
+        "bookingPolicy": "Minimum 3 pax booking.",
+        "visaDetail": "UAE visa on arrival for some countries.",
+        "cancellationPolicy": "No refund on cancellations.",
+        "paymentTerms": "Pay 100% at checkout."
+      }
     },
     {
-      "id": 3,
-      "name": "Laguna Resort",
-      "image": "https://i.ibb.co/7Wxt0wY/pexels-photo-5472524.jpg",
-      "price": "$100",
-      "location": "Paris, France",
-      "details": "2 days 3 night full package",
-      "rating": 4.5,
-      "review": "3.9K Reviews",
-      "full_details": "The Lind Boracay resort has its own train station and can be reached from either lau spezia or levantonipo. From la spezia, take the local train trendo regionale in the direction of sestrin levante and get off at the first stop. From levanto, take the regional train in direction of la spezia centrale.",
-      "images": [
+      "id": "pkg-004",
+      "name": "Swiss Alps & Lakes",
+      "slug": "swiss-alps-lakes",
+      "description": "Explore snow-covered mountains and pristine lakes of Switzerland.",
+      "review": 4700,
+      "currency": "CHF",
+      "importantInfo": "Warm clothes recommended.",
+      "locationId": "loc-004",
+      "location": {
+        "id": "loc-004",
+        "name": "Zurich, Switzerland"
+      },
+      "price": 1350.0,
+      "duration": 8,
+      "availability": "Available",
+      "hotels": "Zurich Grand Hotel",
+      "imageUrl": "https://i.ibb.co/2cNNGhv/800px-Town-and-Country-fh000023.jpg",
+      "categoryID": "cat-004",
+      "category": {
+        "id": "cat-004",
+        "name": "Nature"
+      },
+      "tag": "Regular",
+      "features": [
+        { "feature": { "id": "f7", "name": "Mountain View" } },
+        { "feature": { "id": "f8", "name": "Lake Cruise" } }
+      ],
+      "itineraries": [
         {
-          "url": "https://i.ibb.co/R4PM33B/IMG-20191010-122215.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/N935zvx/1569323297894.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/VwwpFjm/download-1.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/N935zvx/1569323297894.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/X7HjF3T/1958491-wonderland-resort-image-16-KF3q-Sd.jpg"
-        },
-        {
-          "url": "https://i.ibb.co/TM65xNG/90abe31e74dd11e6b4370022195573b9.jpgō"
+          "day": 3,
+          "itinerary": {
+            "title": "Alps Day Tour",
+            "description": "Train journey and cable car to Mount Titlis."
+          }
         }
       ],
-      "Reviews": [
+      "inclusions": [
         {
-          "profile_url": "https://i.ibb.co/RP3hBV7/portrait-white-man-isolated-53876-40306.jpg",
-          "review": "1k",
-          "rating": 5.0
+          "id": "39b0d69c-643d-48e8-a330-bae21995ef8e",
+          "name": "hotels"
         },
         {
-          "profile_url": "https://i.ibb.co/mH2FsCT/images.jpg",
-          "review": "2k",
-          "rating": 4.8
-        },
-        {
-          "profile_url": "https://i.ibb.co/Kzcgt51/8bfda32f-0b52-4238-b990-f98a99eef9bb.png",
-          "review": "2k",
-          "rating": 3.2
-        },
-        {
-          "profile_url": "https://i.ibb.co/dt7RZDz/96a8ca08-b016-4531-ace8-93249ce2d47b.png",
-          "review": "2k",
-          "rating": 1.0
+          "id": "f8856791-d6b8-4c43-a0e1-f6af3f54a17f",
+          "name": "beverages"
         }
       ],
-      "package_included": [
+      "exclusions": [
         {
-          "id": 1,
-          "name": "Flight",
-          "image": "https://i.ibb.co/nrcndkS/Plane.png"
+          "id": "f34459d2-ab19-4073-be05-23dfb7776f9f",
+          "name": "drinks"
         },
         {
-          "id": 2,
-          "name": "Transfer",
-          "image": "https://i.ibb.co/vmwhN3n/Car.png"
-        },
-        {
-          "id": 3,
-          "name": "Hotel",
-          "image": "https://i.ibb.co/6rd0LW6/Hotel.png"
-        },
-        {
-          "id": 4,
-          "name": "Food",
-          "image": "https://i.ibb.co/LN62qtf/Food.png"
+          "id": "bb353d7e-3833-4753-9e7e-e1dfa770a626",
+          "name": "camping"
         }
       ],
-      "ticket_list": [
+      "policy": {
+        "bookingPolicy": "No minors without adult.",
+        "visaDetail": "Schengen required.",
+        "cancellationPolicy": "Full refund up to 5 days.",
+        "paymentTerms": "EMI available."
+      }
+    },
+    {
+      "id": "pkg-005",
+      "name": "Bali Island Escape",
+      "slug": "bali-island-escape",
+      "description": "Relax and recharge in tropical paradise of Bali.",
+      "review": 5200,
+      "currency": "IDR",
+      "importantInfo": "No visa required for Indian passport holders.",
+      "locationId": "loc-005",
+      "location": {
+        "id": "loc-005",
+        "name": "Bali, Indonesia"
+      },
+      "price": 600.0,
+      "duration": 4,
+      "availability": "Available",
+      "hotels": "Bali Beach Resort",
+      "imageUrl": "https://i.ibb.co/thqmWRK/images.jpg",
+      "categoryID": "cat-005",
+      "category": {
+        "id": "cat-005",
+        "name": "Relaxation"
+      },
+      "tag": "Top",
+      "features": [
+        { "feature": { "id": "f9", "name": "Beach View Room" } },
+        { "feature": { "id": "f10", "name": "Couple Massage" } }
+      ],
+      "itineraries": [
         {
-          "from": {
-            "code": "NYC",
-            "name": "New York"
-          },
-          "to": {
-            "code": "LDN",
-            "name": "London"
-          },
-          "flying_time": "19:00",
-          "flying_date": "June 07, 2023",
-          "departure_date": "June 08, 2023",
-          "departure_time": "01:30",
-          "number": 23,
-          "duration": "06h 30m",
-          "airlines_name": "American Airlines",
-          "price": 160.00,
-          "logo_url": "https://i.ibb.co/MS24gC4/Ellipse.png"
-        },
-        {
-          "from": {
-            "code": "NYC",
-            "name": "New York"
-          },
-          "to": {
-            "code": "LDN",
-            "name": "London"
-          },
-          "flying_time": "19:00",
-          "flying_date": "June 07, 2023",
-          "departure_date": "June 08, 2023",
-          "departure_time": "02:00",
-          "number": 23,
-          "duration": "07h 00m",
-          "airlines_name": "Lufthansa Airlines",
-          "price": 140.00,
-          "logo_url": "https://i.ibb.co/rmjLKhk/Ellipse-1.png"
+          "day": 1,
+          "itinerary": {
+            "title": "Beach Arrival",
+            "description": "Settle in, beach walk, and welcome drinks."
+          }
         }
       ],
-      "hotel_list": [
+      "inclusions": [
         {
-          "url": "https://i.ibb.co/vhRjMVx/blue-sea-beach-resort.jpg",
-          "name": "Sea Beach Hotel",
-          "price": "17.25",
-          "rating": 4.9
-        },{
-          "url": "https://i.ibb.co/jf8yKBR/Poo-L-480x434.jpg",
-          "name": "Swiming  Pool Hotel",
-          "price": "19.95",
-          "rating": 4.8
-        },{
-          "url": "https://i.ibb.co/Dwv7WRM/expediav2-2564409-a391de-502539.jpg",
-          "name": "Beach Hotel",
-          "price": "20.95",
-          "rating": 4.8
+          "id": "39b0d69c-643d-48e8-a330-bae21995ef8e",
+          "name": "hotels"
+        },
+        {
+          "id": "f8856791-d6b8-4c43-a0e1-f6af3f54a17f",
+          "name": "beverages"
         }
-      ]
+      ],
+      "exclusions": [
+        {
+          "id": "f34459d2-ab19-4073-be05-23dfb7776f9f",
+          "name": "drinks"
+        },
+        {
+          "id": "bb353d7e-3833-4753-9e7e-e1dfa770a626",
+          "name": "camping"
+        }
+      ],
+      "policy": {
+        "bookingPolicy": "Minimum 2 adults.",
+        "visaDetail": "30-day visa-free for Indians.",
+        "cancellationPolicy": "50% refund if cancelled before 72 hrs.",
+        "paymentTerms": "UPI & Card accepted."
+      }
+    },
+    {
+      "id": "pkg-006",
+      "name": "Tokyo Explorer",
+      "slug": "tokyo-explorer",
+      "description": "Discover Tokyo’s neon nights and traditional temples.",
+      "review": 2800,
+      "currency": "JPY",
+      "importantInfo": "Japan eVisa required.",
+      "locationId": "loc-006",
+      "location": {
+        "id": "loc-006",
+        "name": "Tokyo, Japan"
+      },
+      "price": 1100.0,
+      "duration": 7,
+      "availability": "Available",
+      "hotels": "Shinjuku Tokyo Tower Hotel",
+      "imageUrl": "https://i.ibb.co/L6GR050/Beaches-Turks-Caicos-Overview.jpg",
+      "categoryID": "cat-006",
+      "category": {
+        "id": "cat-006",
+        "name": "Asia Tour"
+      },
+      "tag": "Popular",
+      "features": [
+        { "feature": { "id": "f11", "name": "City Guide Included" } },
+        { "feature": { "id": "f12", "name": "Free SIM Card" } }
+      ],
+      "itineraries": [
+        {
+          "day": 2,
+          "itinerary": {
+            "title": "Shibuya & Akihabara Tour",
+            "description": "Explore Tokyo’s fashion & electronics districts."
+          }
+        }
+      ],
+      "inclusions": [
+        {
+          "id": "39b0d69c-643d-48e8-a330-bae21995ef8e",
+          "name": "hotels"
+        },
+        {
+          "id": "f8856791-d6b8-4c43-a0e1-f6af3f54a17f",
+          "name": "beverages"
+        }
+      ],
+      "exclusions": [
+        {
+          "id": "f34459d2-ab19-4073-be05-23dfb7776f9f",
+          "name": "drinks"
+        },
+        {
+          "id": "bb353d7e-3833-4753-9e7e-e1dfa770a626",
+          "name": "camping"
+        }
+      ],
+      "policy": {
+        "bookingPolicy": "Apply 2 weeks early.",
+        "visaDetail": "E-visa for tourism.",
+        "cancellationPolicy": "No refund after approval.",
+        "paymentTerms": "Full prepayment."
+      }
     }
   ]
 }

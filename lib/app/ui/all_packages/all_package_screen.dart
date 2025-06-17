@@ -7,39 +7,40 @@ import 'package:royaldusk_mobile_app/constant/app_colors.dart';
 import '../../../constant/app_images.dart';
 import '../../../constant/strings.dart';
 import '../../../widgets/app_widget.dart';
-import '../../controller/popular_packages_controller.dart';
-import '../../model/popular_packages.dart';
+import '../../controller/all_packages_controller.dart';
+import '../../model/all_packages.dart';
 
-import '../dashboard/popular_category_view.dart';
+// import '../dashboard/popular_category_view.dart';
+import '../dashboard/all_category_view.dart';
 
-class PopularPackageScreen extends StatefulWidget {
-  const PopularPackageScreen({Key? key}) : super(key: key);
+class AllPackageScreen extends StatefulWidget {
+  const AllPackageScreen({Key? key}) : super(key: key);
 
   @override
-  PopularPackageScreenState createState() => PopularPackageScreenState();
+  AllPackageScreenState createState() => AllPackageScreenState();
 }
 
-class PopularPackageScreenState extends State<PopularPackageScreen> {
-  late PopularPackagesController controller;
-  int get totalRecords => controller.myData.length;
+class AllPackageScreenState extends State<AllPackageScreen> {
+  late AllPackagesController controller;
+  int get totalRecords => controller.myAllPackagesData.length;
   late bool isDarkMode;
 
   @override
   void initState() {
     super.initState();
-    controller = PopularPackagesController();
+    controller = AllPackagesController();
     isDarkMode = controller.themeController.isDarkMode;
   }
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<PopularPackagesController>(
+    return GetBuilder<AllPackagesController>(
         init: controller,
-        tag: 'travel_popular_packages',
+        tag: 'travel_all_packages',
         // theme: theme,
         builder: (controller) {
           return Scaffold(
-            appBar: commonAppBarWidget(context, titleText: popularPackages),
+            appBar: commonAppBarWidget(context, titleText: allPackages),
             body: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.only(left: 20.0),
@@ -71,7 +72,7 @@ class PopularPackageScreenState extends State<PopularPackageScreen> {
                     // 5.height,
                     Expanded(
                       child: Center(
-                          child: FutureBuilder<List<PopularPackage>>(
+                          child: FutureBuilder<List<AllPackage>>(
                         future: controller.fetchData(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
@@ -83,21 +84,21 @@ class PopularPackageScreenState extends State<PopularPackageScreen> {
                             return Text('Error: ${snapshot.error}');
                           } else {
                             return Obx(
-                              () => controller.myData.isEmpty
+                              () => controller.myAllPackagesData.isEmpty
                                   ? const Text(noDataAvailable)
                                   : Padding(
                                       padding:
                                           const EdgeInsets.only(right: 15.0),
                                       child: ListView.builder(
                                         // physics: const NeverScrollableScrollPhysics(),
-                                        itemCount: controller.myData.length,
+                                        itemCount: controller.myAllPackagesData.length,
                                         shrinkWrap: true,
                                         scrollDirection: Axis.vertical,
                                         itemBuilder: (context, index) {
-                                          PopularPackage? popularPackage =
-                                              controller.myData[index];
-                                          return PopularCategoryView(
-                                              popularPackage);
+                                          AllPackage? allPackage =
+                                              controller.myAllPackagesData[index];
+                                          return AllCategoryView(
+                                              allPackage);
                                         },
                                       ),
                                     ),

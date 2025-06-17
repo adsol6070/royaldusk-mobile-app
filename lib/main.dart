@@ -1,3 +1,4 @@
+import 'package:royaldusk_mobile_app/app/controller/auth_controller.dart';
 import 'package:royaldusk_mobile_app/route/my_route.dart';
 import 'package:royaldusk_mobile_app/theme/styles.dart';
 import 'package:royaldusk_mobile_app/utils/flutter_web_frame/flutter_web_frame.dart';
@@ -8,9 +9,14 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 import 'app/controller/theme_controller.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+   await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await GetStorage.init();
   runApp(const MyApp());
 }
@@ -44,6 +50,9 @@ class MyAppState extends State<MyApp> {
                   controller.isDarkMode ? Styles.darkTheme : Styles.lightTheme,
               getPages: MyRoutes.routes,
               initialRoute: MyRoutes.initial,
+              initialBinding: BindingsBuilder(() {
+                Get.put(AuthController(), permanent: true);
+              }),
             );
           },
           // ),

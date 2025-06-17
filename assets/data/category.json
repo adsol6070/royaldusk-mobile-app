@@ -4,18 +4,6 @@
       "id": 1,
       "name": "Packages",
       "image": "https://i.ibb.co/wdL3B5p/Package.png"
-   }, {
-      "id": 2,
-      "name": "Flight",
-      "image": "https://i.ibb.co/nrcndkS/Plane.png"
-   }, {
-      "id": 3,
-      "name": "Places",
-      "image": "https://i.ibb.co/mHN7HFn/Places.png"
-   }, {
-      "id": 4,
-      "name": "Hotel",
-      "image": "https://i.ibb.co/6rd0LW6/Hotel.png"
-   }
+    }
   ]
 }

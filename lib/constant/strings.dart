@@ -54,6 +54,7 @@ const searchPackages = "Search packages";
 const seeAll = "See All";
 const night = "/Night";
 const popularPackages = "Popular Packages";
+const allPackages = "All Packages";
 const popularPlaces = "Popular Places";
 const popularHotels = "Popular Hotels";
 const topPackages = "Top Packages";
