@@ -7,18 +7,15 @@ import 'package:nb_utils/nb_utils.dart';
 import 'package:royaldusk_mobile_app/constant/app_colors.dart';
 import 'package:royaldusk_mobile_app/widgets/app_widget.dart';
 import 'package:royaldusk_mobile_app/widgets/custom_row_text_with_click.dart';
-import 'package:royaldusk_mobile_app/widgets/grediant_button.dart';
+// import 'package:royaldusk_mobile_app/widgets/grediant_button.dart';
 
 import '../../../constant/app_images.dart';
 import '../../../constant/strings.dart';
-import '../../../route/my_route.dart';
+// import '../../../route/my_route.dart';
 import '../../controller/hotel_confirmation_controller.dart';
 
-
 class HotelConfirmationScreen extends StatefulWidget {
-
-  const HotelConfirmationScreen({Key? key})
-      : super(key: key);
+  const HotelConfirmationScreen({Key? key}) : super(key: key);
 
   @override
   HotelConfirmationScreenState createState() => HotelConfirmationScreenState();
@@ -161,11 +158,11 @@ class HotelConfirmationScreenState extends State<HotelConfirmationScreen> {
                         ],
                       ),
                       30.height,
-                      GradientElevatedButton(
-                          onPressed: () {
-                            Get.offNamed(MyRoutes.paymentScreen);
-                          },
-                          text: continueText),
+                      // GradientElevatedButton(
+                      //     onPressed: () {
+                      //       Get.offNamed(MyRoutes.paymentScreen);
+                      //     },
+                      //     text: continueText),
 
                       20.height,
                     ],
@@ -191,7 +188,7 @@ class HotelConfirmationScreenState extends State<HotelConfirmationScreen> {
         ),
         10.width,
         Obx(
-              () => Text(
+          () => Text(
             '${controller.quantity}',
             style: const TextStyle(
                 fontSize: textSizeNormal, fontWeight: FontWeight.bold),

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:royaldusk_mobile_app/app/controller/payment_controller.dart';
+import 'package:royaldusk_mobile_app/app/ui/popular_package/booking_success_dialog.dart';
 
 import 'package:royaldusk_mobile_app/constant/app_colors.dart';
 import 'package:royaldusk_mobile_app/widgets/app_widget.dart';
@@ -11,7 +12,7 @@ import 'package:royaldusk_mobile_app/widgets/custom_row_text_with_click.dart';
 import 'package:royaldusk_mobile_app/widgets/grediant_button.dart';
 
 import '../../../constant/app_images.dart';
-import '../../../route/my_route.dart';
+// import '../../../route/my_route.dart';
 import '../../controller/confirmation_controller.dart';
 import '../../controller/auth_controller.dart';
 import '../../model/popular_packages.dart';
@@ -26,29 +27,25 @@ class ConfirmationScreen extends StatefulWidget {
 class ConfirmationScreenState extends State<ConfirmationScreen> {
   late ConfirmationController controller;
   late AuthController authController;
+  late PaymentController paymentController;
+
   bool get isDarkMode {
     try {
-      // Try to get theme controller if it exists
-      final themeController =
-          Get.find<dynamic>(); // Replace with your actual theme controller type
+      final themeController = Get.find<dynamic>();
       return themeController?.isDarkMode ?? false;
     } catch (e) {
-      // Fallback to system theme if no theme controller found
       return Theme.of(context).brightness == Brightness.dark;
     }
   }
 
-  // Get package from arguments passed via Get.toNamed
   PopularPackage? get popularPackage => Get.arguments as PopularPackage?;
 
-  // Form controllers
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController nationalityController = TextEditingController();
   final TextEditingController remarksController = TextEditingController();
   DateTime? selectedStartDate;
   int travelerCount = 1;
 
-  // Form key for validation
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
@@ -56,14 +53,12 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
     super.initState();
     controller = Get.put(ConfirmationController(), tag: 'travel_confirmation');
     authController = AuthController.to;
-    // isDarkMode = controller.themeController.isDarkMode;
+    paymentController = Get.put(PaymentController());
 
-    // Set initial values if package is provided
     if (popularPackage != null) {
-      travelerCount = 1; // Default to 1 person
+      travelerCount = 1;
     }
 
-    // Pre-fill phone number if available from auth
     if (authController.phoneNumber.isNotEmpty) {
       phoneController.text = authController.phoneNumber;
     }
@@ -177,13 +172,17 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
                             ? _buildErrorWidget()
                             : const SizedBox.shrink()),
 
-                        // Continue Button
+                        // Show payment errors
+                        Obx(() => paymentController.hasError
+                            ? _buildPaymentErrorWidget()
+                            : const SizedBox.shrink()),
+
+                        // Continue Button with payment integration
                         Obx(() => GradientElevatedButton(
-                            onPressed:
-                                controller.isLoading ? () {} : _handleContinue,
-                            text: controller.isLoading
-                                ? "Creating Booking..."
-                                : "Create Booking")),
+                            onPressed: _isLoading
+                                ? () {}
+                                : _handleCreateBookingWithPayment,
+                            text: _getButtonText())),
 
                         20.height,
                       ],
@@ -194,6 +193,49 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
             ),
           );
         });
+  }
+
+  Widget _buildPaymentErrorWidget() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.withAlpha(26),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withAlpha(51)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.payment, color: Colors.red, size: 24),
+          12.width,
+          Expanded(
+            child: Text(
+              paymentController.errorMessage,
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool get _isLoading =>
+      controller.isLoading ||
+      paymentController.isCreatingPaymentIntent.value ||
+      paymentController.isProcessingPayment.value;
+
+  String _getButtonText() {
+    if (controller.isLoading) {
+      return "Creating Booking...";
+    } else if (paymentController.isCreatingPaymentIntent.value) {
+      return "Setting up Payment...";
+    } else if (paymentController.isProcessingPayment.value) {
+      return "Processing Payment...";
+    }
+    return "Create Booking & Pay";
   }
 
   Widget _buildAuthInfoCard() {
@@ -818,7 +860,6 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
             fontFamily: GoogleFonts.ubuntu().fontFamily));
   }
 
-  // Event Handlers
   void _selectStartDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -851,7 +892,6 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
 
   void _incrementTravelers() {
     if (travelerCount < 10) {
-      // Max 10 travelers
       setState(() {
         travelerCount++;
       });
@@ -861,7 +901,6 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
 
   void _decrementTravelers() {
     if (travelerCount > 1) {
-      // Min 1 traveler
       setState(() {
         travelerCount--;
       });
@@ -880,55 +919,32 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
     }
   }
 
-  void _handleContinue() async {
-    // Check if package data exists
+  void _handleCreateBookingWithPayment() async {
     if (popularPackage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Package information is missing. Please go back and select a package.'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _showErrorSnackBar(
+          'Package information is missing. Please go back and select a package.');
       return;
     }
 
-    // Validate form
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    // Check if start date is selected
     if (selectedStartDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a start date'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _showErrorSnackBar('Please select a start date');
       return;
     }
 
-    // Check authentication
     if (!authController.isValidSession) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please log in to create a booking'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _showErrorSnackBar('Please log in to create a booking');
       return;
     }
 
     try {
-      // Clear any previous errors
       controller.clearFormErrors();
+      paymentController.clearPaymentErrors();
 
-      // Create booking via API
-      final result = await controller.createBooking(
+      final bookingResult = await controller.createBooking(
         package: popularPackage!,
         startDate: selectedStartDate!,
         travelers: travelerCount,
@@ -940,51 +956,126 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
         agreedToTerms: true,
       );
 
-      if (result != null) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Booking created successfully! ID: ${controller.lastCreatedBookingId.value}'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 4),
-          ),
-        );
+      if (bookingResult == null ||
+          controller.lastCreatedBookingId.value.isEmpty) {
+        throw Exception('Failed to create booking');
+      }
 
-        // Navigate to payment screen or booking confirmation screen
-        final bookingData = {
-          'package': popularPackage,
-          'startDate': selectedStartDate,
-          'travelerCount': travelerCount,
-          'phoneNumber': phoneController.text,
-          'nationality': nationalityController.text,
-          'remarks': remarksController.text,
-          'totalPrice': totalPrice,
-          'currency': currency,
-          'bookingId': controller.lastCreatedBookingId.value,
-          'bookingResponse': result,
-        };
+      final bookingId = controller.lastCreatedBookingId.value;
 
-        // Navigate to payment screen with booking data
-        Get.put(PaymentController());
-        Get.toNamed(MyRoutes.paymentScreen, arguments: bookingData);
+      await paymentController.createPaymentIntent(
+        bookingId: bookingId,
+        amount: totalPrice,
+        currency: _getCurrencyCode(),
+        provider: PaymentProvider.stripe,
+        method: PaymentMethod.card,
+        metadata: {
+          'package_id': popularPackage!.id.toString(),
+          'package_name': popularPackage!.name,
+          'travelers': travelerCount.toString(),
+          'start_date': selectedStartDate!.toIso8601String(),
+          'user_id': authController.userId,
+          'phone': phoneController.text,
+        },
+      );
+
+      final paymentResult = await paymentController.presentPaymentSheet();
+
+      if (paymentResult != null) {
+        _showSuccessSnackBar(
+            'Booking and payment completed successfully! Booking ID: $bookingId');
+
+        // Navigate to booking confirmation/success screen
+        // final bookingData = {
+        //   'package': popularPackage,
+        //   'startDate': selectedStartDate,
+        //   'travelerCount': travelerCount,
+        //   'phoneNumber': phoneController.text,
+        //   'nationality': nationalityController.text,
+        //   'remarks': remarksController.text,
+        //   'totalPrice': totalPrice,
+        //   'currency': currency,
+        //   'bookingId': bookingId,
+        //   'bookingResponse': bookingResult,
+        //   'paymentIntent': paymentResult,
+        //   'paymentStatus': 'completed',
+        // };
+
+        // Navigate to success screen or booking details
+        // Get.offAllNamed(MyRoutes.bookingSuccessScreen, arguments: bookingData);
+
+        BookingSuccessDialog().customDialog(context, isDarkMode);
       }
     } catch (e) {
-      // Error is already handled by the controller and shown in UI
-      // Additional handling can be done here if needed
-      print('❌ Booking creation failed: $e');
+      print('❌ Error in booking/payment flow: $e');
 
-      // Show additional error context if needed
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'Failed to create booking: ${e.toString().replaceAll('Exception: ', '')}'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      String errorMessage = e.toString().replaceAll('Exception: ', '');
+
+      if (errorMessage.contains('cancelled') ||
+          errorMessage.contains('canceled')) {
+        _showWarningSnackBar(
+            'Payment was cancelled. Your booking has been created but payment is pending.');
+      } else if (errorMessage.contains('requires additional authentication')) {
+        _showWarningSnackBar(
+            'Payment requires additional authentication. Please try again.');
+      } else {
+        _showErrorSnackBar(
+            'Failed to complete booking and payment: $errorMessage');
+      }
     }
+  }
+
+  String _getCurrencyCode() {
+    switch (currency.toLowerCase()) {
+      case 'usd':
+        return 'usd';
+      case '€':
+      case 'eur':
+        return 'eur';
+      case '£':
+      case 'gbp':
+        return 'gbp';
+      case '₹':
+      case 'inr':
+        return 'inr';
+      case '¥':
+      case 'jpy':
+        return 'jpy';
+      default:
+        return 'usd';
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  void _showWarningSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.orange,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 }

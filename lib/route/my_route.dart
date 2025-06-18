@@ -11,7 +11,6 @@ import '../app/ui/password/new_password_screen.dart';
 import '../app/ui/otp/otp_verfication_screen.dart';
 import '../app/ui/place/popular_places_screen.dart';
 import '../app/ui/popular_package/confirmation_screen.dart';
-import '../app/ui/popular_package/payment_screen.dart';
 import '../app/ui/popular_package/popular_package_screen.dart';
 import '../app/ui/profile/my_profile_screen.dart';
 import '../app/ui/password/reset_password.dart';
@@ -35,7 +34,6 @@ class MyRoutes {
   static const popularPackageScreen = '/popular_package_screen';
   static const topPackageScreen = '/top_package_screen';
   static const flightScreen = '/flight_screen';
-  static const paymentScreen = '/payment_screen';
   static const confirmationScreen = '/confirmation_screen';
   static const boardingPass = '/boarding_pass';
   static const popularPlace = '/popular_place';
@@ -77,10 +75,6 @@ class MyRoutes {
     GetPage(
         name: flightScreen,
         page: () => const FlightScreen(),
-        middlewares: [AuthMiddleware()]),
-    GetPage(
-        name: paymentScreen,
-        page: () => const PaymentScreen(),
         middlewares: [AuthMiddleware()]),
     GetPage(
         name: confirmationScreen,
