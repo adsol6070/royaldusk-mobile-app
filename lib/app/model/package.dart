@@ -1,4 +1,4 @@
-class PopularPackage {
+class Package {
   final String id;
   final String name;
   final String slug;
@@ -20,7 +20,7 @@ class PopularPackage {
   final List<InclusionExclusionItem> inclusions;
   final List<InclusionExclusionItem> exclusions;
 
-  PopularPackage({
+  Package({
     required this.id,
     required this.name,
     required this.slug,
@@ -43,8 +43,8 @@ class PopularPackage {
     required this.exclusions,
   });
 
-  factory PopularPackage.fromJson(Map<String, dynamic> json) {
-    return PopularPackage(
+  factory Package.fromJson(Map<String, dynamic> json) {
+    return Package(
       id: json['id'],
       name: json['name'],
       slug: json['slug'],

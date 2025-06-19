@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:royaldusk_mobile_app/app/model/package.dart';
 import 'auth_controller.dart';
-import '../model/popular_packages.dart';
 
 class ConfirmationController extends GetxController {
   static ConfirmationController get to => Get.find();
@@ -55,7 +55,7 @@ class ConfirmationController extends GetxController {
 
   /// Create booking with comprehensive validation and error handling
   Future<Map<String, dynamic>?> createBooking({
-    required PopularPackage package,
+    required Package package,
     required DateTime startDate,
     required int travelers,
     required String phoneNumber,
@@ -144,7 +144,7 @@ class ConfirmationController extends GetxController {
 
   /// Build booking payload from provided data
   Map<String, dynamic> _buildBookingPayload({
-    required PopularPackage package,
+    required Package package,
     required DateTime startDate,
     required int travelers,
     required String phoneNumber,
@@ -175,7 +175,7 @@ class ConfirmationController extends GetxController {
 
   /// Validate booking data before API call
   Map<String, dynamic> _validateBookingData({
-    required PopularPackage package,
+    required Package package,
     required DateTime startDate,
     required int travelers,
     required String phoneNumber,
@@ -420,7 +420,7 @@ class ConfirmationController extends GetxController {
 
   /// Validate form input and update state
   void validateForm({
-    PopularPackage? package,
+    Package? package,
     DateTime? startDate,
     int? travelers,
     String? phoneNumber,

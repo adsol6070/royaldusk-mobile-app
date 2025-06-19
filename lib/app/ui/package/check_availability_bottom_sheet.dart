@@ -8,7 +8,7 @@ import 'package:royaldusk_mobile_app/widgets/grediant_button.dart';
 import '../../../constant/app_colors.dart';
 import '../../../constant/app_images.dart';
 import '../../../constant/strings.dart';
-import 'custom_calendar.dart';
+import '../popular_package/custom_calendar.dart';
 
 class CheckAvailabilityBottomSheet {
   static void show(BuildContext context, bool isDarkMode) {

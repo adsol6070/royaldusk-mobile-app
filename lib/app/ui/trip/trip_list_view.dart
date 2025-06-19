@@ -1,133 +1,350 @@
-import 'package:royaldusk_mobile_app/app/ui/trip/trip_detail_screen.dart';
+import 'package:royaldusk_mobile_app/app/model/package.dart';
+import 'package:royaldusk_mobile_app/app/ui/package/package_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:royaldusk_mobile_app/widgets/app_widget.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../constant/app_colors.dart';
 import '../../../constant/app_images.dart';
-import '../../model/popular_packages.dart';
+import '../../controller/my_saved_list_controller.dart';
 
 class TripListView extends StatelessWidget {
-  final PopularPackage popularPackage;
+  final Package popularPackage;
+  final bool showBookmark;
 
-  const TripListView(this.popularPackage, {super.key});
+  const TripListView(
+    this.popularPackage, {
+    super.key,
+    this.showBookmark = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Get.to(
-          TripDetailScreen(
-            popularPackage: popularPackage,
-          ),
-        );
+        // Navigate to PopularPackageDetailScreen instead of TripDetailScreen
+        Get.to(() => PackageDetailScreen(
+              package: popularPackage,
+            ));
       },
       child: Container(
-        margin: const EdgeInsets.only(top: 10),
+        margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
-          border: Border.all(width: 5, color: grey1.withAlpha(51)),
-          // Adjust the radius as needed
-          image: const DecorationImage(
-            image: AssetImage(cardBg), // Replace with your image path
-            fit: BoxFit.cover,
-          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+              spreadRadius: 0,
+            ),
+          ],
         ),
-        width: double.infinity,
-        height: 200,
-        child: SizedBox(
-          width: double.infinity,
-          child: Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20.0),
-                ),
-                width: double.infinity,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20.0),
+          child: Container(
+            height: 240,
+            child: Stack(
+              children: [
+                // Background Image
+                Positioned.fill(
                   child: commonCacheImageWidget(
-                      popularPackage.imageUrl.toString(), 200),
-                ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15.0),
-                  image: const DecorationImage(
-                      image: AssetImage(transparentBgImage), fit: BoxFit.fill),
-                ),
-                width: double.infinity,
-              ),
-              Positioned(
-                top: 10,
-                left: 10,
-                child: Card(
-                  elevation: 1,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                    popularPackage.imageUrl.toString(),
+                    240, // height parameter
+                    fit: BoxFit.cover,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Row(children: [
-                      SvgPicture.asset(
-                        starIcon,
-                        height: 15,
-                        width: 15,
+                ),
+
+                // Gradient Overlay for better text readability
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.1),
+                          Colors.black.withOpacity(0.7),
+                        ],
+                        stops: const [0.0, 0.5, 1.0],
                       ),
-                      5.width,
-                      const Text(
-                        "5.0",
-                      )
-                    ]),
+                    ),
                   ),
                 ),
-              ),
-              Positioned(
-                bottom: 10,
-                left: 20,
-                right: 15,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  // mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Flexible(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            popularPackage.name.toString(),
-                            textAlign: TextAlign.start,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: textSizeLargeMedium),
+
+                // Rating Card (Top Left)
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SvgPicture.asset(
+                          starIcon,
+                          height: 16,
+                          width: 16,
+                        ),
+                        4.width,
+                        Text(
+                          "5.0",
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
                           ),
-                          Text(
-                            popularPackage.description.toString(),
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: textSizeSMedium),
-                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Price Tag (Top Right)
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          appColorPrimary,
+                          appColorPrimary.withOpacity(0.8)
                         ],
                       ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: appColorPrimary.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    GestureDetector(
-                      onTap: () {},
-                      child: SvgPicture.asset(
-                        bookmarkSelectIcon,
-                        height: 32,
-                        width: 32,
+                    child: Text(
+                      "${popularPackage.currency} ${popularPackage.price}",
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              )
-            ],
+
+                // Content (Bottom)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Package Name
+                        Text(
+                          popularPackage.name,
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        8.height,
+
+                        // Location
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              color: Colors.white.withOpacity(0.9),
+                              size: 16,
+                            ),
+                            6.width,
+                            Expanded(
+                              child: Text(
+                                popularPackage.location.name,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        12.height,
+
+                        // Package Info Row
+                        Row(
+                          children: [
+                            // Duration
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.schedule,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
+                                  4.width,
+                                  Text(
+                                    "${popularPackage.duration}D",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            12.width,
+
+                            // Hotels
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.hotel,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
+                                  4.width,
+                                  Text(
+                                    popularPackage.hotels,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const Spacer(),
+
+                            // Bookmark Button
+                            if (showBookmark)
+                              GetBuilder<MySavedController>(
+                                init: Get.find<MySavedController>(),
+                                builder: (savedController) => GestureDetector(
+                                  onTap: () {
+                                    // savedController.togglePackageSave(popularPackage);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.9),
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Obx(() => SvgPicture.asset(
+                                          savedController.isPackageSaved(
+                                                  popularPackage.id)
+                                              ? bookmarkSelectIcon // Your filled bookmark icon
+                                              : bookmarkOnlyIcon, // Your outline bookmark icon
+                                          height: 20,
+                                          width: 20,
+                                          colorFilter: ColorFilter.mode(
+                                            savedController.isPackageSaved(
+                                                    popularPackage.id)
+                                                ? appColorPrimary
+                                                : Colors.grey.shade600,
+                                            BlendMode.srcIn,
+                                          ),
+                                        )),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+
+                        // Tag (if available)
+                        if (popularPackage.tag.isNotEmpty) ...[
+                          12.height,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withOpacity(0.9),
+                                  Colors.white.withOpacity(0.7),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              popularPackage.tag,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: appColorPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

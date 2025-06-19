@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:royaldusk_mobile_app/app/enums/package_types.dart';
+import 'package:royaldusk_mobile_app/app/model/package.dart';
 import 'package:royaldusk_mobile_app/route/my_route.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -8,17 +10,16 @@ import 'package:get/get.dart';
 
 import '../controller/theme_controller.dart';
 import '../model/category.dart';
-import '../model/popular_packages.dart';
 
 class HomeController extends GetxController {
   final ThemeController themeController = Get.put(ThemeController());
 
   RxList<Category> allCategories = <Category>[].obs;
-  final RxList<PopularPackage> allPackages = <PopularPackage>[].obs;
-  final RxList<PopularPackage> filteredPackages = <PopularPackage>[].obs;
-  final RxList<PopularPackage> allPopularPackages = <PopularPackage>[].obs;
-  final RxList<PopularPackage> filteredPopularPackages = <PopularPackage>[].obs;
-  final RxList<PopularPackage> topPackages = <PopularPackage>[].obs;
+  final RxList<Package> allPackages = <Package>[].obs;
+  final RxList<Package> filteredPackages = <Package>[].obs;
+  final RxList<Package> allPopularPackages = <Package>[].obs;
+  final RxList<Package> filteredPopularPackages = <Package>[].obs;
+  final RxList<Package> topPackages = <Package>[].obs;
   int popularPkgCurrentIndex = 0;
 
   final TextEditingController searchController = TextEditingController();
@@ -34,6 +35,10 @@ class HomeController extends GetxController {
 
   void goToPopularPackageScreen() {
     Get.toNamed(MyRoutes.popularPackageScreen);
+  }
+
+  void goToAllPackageScreen() {
+    Get.toNamed('/package-list', arguments: PackageType.all);
   }
 
   void goToFlightScreen() {
@@ -84,7 +89,7 @@ class HomeController extends GetxController {
     return allCategories;
   }
 
-  Future<List<PopularPackage>> getAllPackages() async {
+  Future<List<Package>> getAllPackages() async {
     allPackages.clear();
     try {
       final response = await http.get(
@@ -94,7 +99,7 @@ class HomeController extends GetxController {
         final decoded = json.decode(response.body);
         List<dynamic> jsonArray = decoded['data'];
         for (var item in jsonArray) {
-          allPackages.add(PopularPackage.fromJson(item));
+          allPackages.add(Package.fromJson(item));
         }
         filteredPackages.assignAll(allPackages);
       } else {
@@ -106,7 +111,7 @@ class HomeController extends GetxController {
     return allPackages;
   }
 
-  Future<List<PopularPackage>> getAllPopularPackages() async {
+  Future<List<Package>> getAllPopularPackages() async {
     allPopularPackages.clear();
     try {
       final response = await http.get(
@@ -116,7 +121,7 @@ class HomeController extends GetxController {
         final decoded = json.decode(response.body);
         List<dynamic> jsonArray = decoded['data'];
         for (var item in jsonArray) {
-          final pkg = PopularPackage.fromJson(item);
+          final pkg = Package.fromJson(item);
           allPopularPackages.add(pkg);
         }
         filteredPopularPackages.assignAll(allPopularPackages);
@@ -129,7 +134,7 @@ class HomeController extends GetxController {
     return allPopularPackages;
   }
 
-  Future<List<PopularPackage>> getAllTopPackages() async {
+  Future<List<Package>> getAllTopPackages() async {
     topPackages.clear();
     try {
       final response = await http.get(
@@ -139,7 +144,7 @@ class HomeController extends GetxController {
         final decoded = json.decode(response.body);
         List<dynamic> jsonArray = decoded['data'];
         for (var item in jsonArray) {
-          final pkg = PopularPackage.fromJson(item);
+          final pkg = Package.fromJson(item);
           topPackages.add(pkg);
         }
       } else {

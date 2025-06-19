@@ -4,7 +4,8 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:royaldusk_mobile_app/app/controller/payment_controller.dart';
-import 'package:royaldusk_mobile_app/app/ui/popular_package/booking_success_dialog.dart';
+import 'package:royaldusk_mobile_app/app/model/package.dart';
+import 'package:royaldusk_mobile_app/app/ui/package/booking_success_dialog.dart';
 
 import 'package:royaldusk_mobile_app/constant/app_colors.dart';
 import 'package:royaldusk_mobile_app/widgets/app_widget.dart';
@@ -15,7 +16,6 @@ import '../../../constant/app_images.dart';
 // import '../../../route/my_route.dart';
 import '../../controller/confirmation_controller.dart';
 import '../../controller/auth_controller.dart';
-import '../../model/popular_packages.dart';
 
 class ConfirmationScreen extends StatefulWidget {
   const ConfirmationScreen({Key? key}) : super(key: key);
@@ -38,7 +38,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
     }
   }
 
-  PopularPackage? get popularPackage => Get.arguments as PopularPackage?;
+  Package? get package => Get.arguments as Package?;
 
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController nationalityController = TextEditingController();
@@ -55,7 +55,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
     authController = AuthController.to;
     paymentController = Get.put(PaymentController());
 
-    if (popularPackage != null) {
+    if (package != null) {
       travelerCount = 1;
     }
 
@@ -73,14 +73,14 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
   }
 
   double get totalPrice {
-    if (popularPackage != null) {
-      return popularPackage!.price * travelerCount;
+    if (package != null) {
+      return package!.price * travelerCount;
     }
     return 0.0;
   }
 
   String get currency {
-    return popularPackage?.currency ?? '\$';
+    return package?.currency ?? '\$';
   }
 
   @override
@@ -317,7 +317,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
   }
 
   Widget _buildPackageSummaryCard() {
-    if (popularPackage == null) {
+    if (package == null) {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -354,7 +354,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: commonCacheImageWidget(
-              popularPackage!.imageUrl,
+              package!.imageUrl,
               60,
               fit: BoxFit.cover,
               width: 60,
@@ -366,7 +366,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  popularPackage!.name,
+                  package!.name,
                   style: const TextStyle(
                     fontSize: textSizeMedium,
                     fontWeight: FontWeight.bold,
@@ -376,7 +376,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
                 ),
                 4.height,
                 Text(
-                  popularPackage!.location.name,
+                  package!.location.name,
                   style: TextStyle(
                     fontSize: textSizeSmall,
                     color: isDarkMode
@@ -385,7 +385,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
                   ),
                 ),
                 4.height,
-                if (popularPackage!.tag.isNotEmpty)
+                if (package!.tag.isNotEmpty)
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -394,7 +394,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      popularPackage!.tag,
+                      package!.tag,
                       style: const TextStyle(
                         color: appColorPrimary,
                         fontSize: textSizeSmall,
@@ -480,7 +480,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
         CustomRowTextWithClick(
             title: "Destination", onPressed: () {}, isDarkMode: isDarkMode),
         5.height,
-        _buildText(popularPackage?.location.name ?? 'Not specified'),
+        _buildText(package?.location.name ?? 'Not specified'),
       ],
     );
   }
@@ -492,7 +492,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
         CustomRowTextWithClick(
             title: "Duration", onPressed: () {}, isDarkMode: isDarkMode),
         5.height,
-        _buildText('${popularPackage?.duration ?? 0} days'),
+        _buildText('${package?.duration ?? 0} days'),
       ],
     );
   }
@@ -504,7 +504,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
         CustomRowTextWithClick(
             title: "Hotel", onPressed: () {}, isDarkMode: isDarkMode),
         5.height,
-        _buildText(popularPackage?.hotels ?? 'To be confirmed'),
+        _buildText(package?.hotels ?? 'To be confirmed'),
       ],
     );
   }
@@ -766,7 +766,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
         5.width,
         Expanded(
           child: Text(
-            'Price per person: $currency${popularPackage?.price ?? 0}',
+            'Price per person: $currency${package?.price ?? 0}',
             style: TextStyle(
                 color: isDarkMode
                     ? whiteColor.withAlpha(153)
@@ -909,9 +909,9 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
   }
 
   void _validateFormData() {
-    if (popularPackage != null && selectedStartDate != null) {
+    if (package != null && selectedStartDate != null) {
       controller.validateForm(
-        package: popularPackage!,
+        package: package!,
         startDate: selectedStartDate!,
         travelers: travelerCount,
         phoneNumber: phoneController.text,
@@ -920,7 +920,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
   }
 
   void _handleCreateBookingWithPayment() async {
-    if (popularPackage == null) {
+    if (package == null) {
       _showErrorSnackBar(
           'Package information is missing. Please go back and select a package.');
       return;
@@ -945,7 +945,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
       paymentController.clearPaymentErrors();
 
       final bookingResult = await controller.createBooking(
-        package: popularPackage!,
+        package: package!,
         startDate: selectedStartDate!,
         travelers: travelerCount,
         phoneNumber: phoneController.text,
@@ -970,8 +970,8 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
         provider: PaymentProvider.stripe,
         method: PaymentMethod.card,
         metadata: {
-          'package_id': popularPackage!.id.toString(),
-          'package_name': popularPackage!.name,
+          'package_id': package!.id.toString(),
+          'package_name': package!.name,
           'travelers': travelerCount.toString(),
           'start_date': selectedStartDate!.toIso8601String(),
           'user_id': authController.userId,
@@ -987,7 +987,7 @@ class ConfirmationScreenState extends State<ConfirmationScreen> {
 
         // Navigate to booking confirmation/success screen
         // final bookingData = {
-        //   'package': popularPackage,
+        //   'package': package,
         //   'startDate': selectedStartDate,
         //   'travelerCount': travelerCount,
         //   'phoneNumber': phoneController.text,

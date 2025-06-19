@@ -3,12 +3,10 @@ import 'package:get/get.dart';
 import 'package:royaldusk_mobile_app/app/controller/auth_controller.dart';
 import '../../route/my_route.dart';
 import '../controller/theme_controller.dart';
-import '../../httpClient/http_client.dart';
 
 class SignInController extends GetxController {
   final ThemeController themeController = Get.put(ThemeController());
   final AuthController _authController = Get.find<AuthController>();
-  final ApiClient apiClient = ApiClient();
 
   // Form controllers
   TextEditingController? emailController;
@@ -16,6 +14,7 @@ class SignInController extends GetxController {
 
   // UI State
   final RxBool isLoading = false.obs;
+  final RxBool isGoogleLoading = false.obs;
   bool isIconTrue = true;
   bool isChecked = false;
   bool rememberMe = false;
@@ -103,6 +102,88 @@ class SignInController extends GetxController {
     } finally {
       isLoading.value = false;
       update();
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    // Start Google loading state
+    isGoogleLoading.value = true;
+    update();
+
+    try {
+      print('🔄 Starting Google Sign-In from SignInController...');
+
+      // Use AuthController's Google sign-in method
+      await _authController.signInWithGoogle();
+      // Navigate to main screen
+      goToMainHomeScreen();
+      // Show success message
+      Get.snackbar(
+        'Success',
+        'Welcome! You\'ve signed in with Google.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Get.theme.primaryColor,
+        colorText: Get.theme.colorScheme.onPrimary,
+        duration: const Duration(seconds: 2),
+      );
+
+      // Navigation will be handled by the listener in onInit
+      print('✅ Google Sign-In completed successfully');
+    } catch (e) {
+      print('❌ Google Sign-In failed in SignInController: $e');
+      // Handle Google sign-in errors
+      _handleGoogleSignInError(e);
+    } finally {
+      isGoogleLoading.value = false;
+      update();
+    }
+  }
+
+  /// Handle Google Sign-In specific errors
+  void _handleGoogleSignInError(dynamic error) {
+    String title = 'Google Sign-In Failed';
+    String message = 'Unable to sign in with Google. Please try again.';
+
+    // Remove "Exception: " prefix if present
+    String errorMessage = error.toString().replaceFirst('Exception: ', '');
+
+    // Handle different types of Google auth errors
+    if (errorMessage.contains('network_error') ||
+        errorMessage.contains('Network error')) {
+      message = 'Network error. Please check your internet connection.';
+    } else if (errorMessage.contains('sign_in_canceled') ||
+        errorMessage.contains('Sign-in was canceled')) {
+      message = 'Sign-in was canceled.';
+      title = 'Sign-In Canceled';
+    } else if (errorMessage
+        .contains('account-exists-with-different-credential')) {
+      message = 'An account already exists with a different sign-in method.';
+    } else if (errorMessage.contains('invalid-credential')) {
+      message = 'The credential is invalid or has expired.';
+    } else if (errorMessage.contains('operation-not-allowed')) {
+      message = 'Google sign-in is not enabled for this app.';
+    } else if (errorMessage.contains('user-disabled')) {
+      message = 'This user account has been disabled.';
+    } else if (errorMessage.contains('Invalid Google authentication')) {
+      message = 'Invalid Google authentication. Please try again.';
+    } else if (errorMessage.contains('Account already exists')) {
+      message = 'Account already exists with different credentials.';
+    } else {
+      message = errorMessage.isNotEmpty ? errorMessage : message;
+    }
+
+    // Only show error if it's not a user cancellation
+    if (!errorMessage.contains('canceled') &&
+        !errorMessage.contains('Sign-in was canceled')) {
+      Get.snackbar(
+        title,
+        message,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+        duration: const Duration(seconds: 4),
+        margin: const EdgeInsets.all(16),
+      );
     }
   }
 
@@ -235,4 +316,8 @@ class SignInController extends GetxController {
     await _authController.logout();
     clearForm();
   }
+
+  /// Check if any loading is in progress
+  bool get isAnyLoading =>
+      isLoading.value || isGoogleLoading.value || _authController.isLoading;
 }

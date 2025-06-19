@@ -10,17 +10,16 @@ import '../../../constant/app_colors.dart';
 import '../../../constant/app_images.dart';
 import '../../controller/my_saved_list_controller.dart';
 
-class PopularCategoryView extends StatefulWidget {
+class PackageView extends StatefulWidget {
   final Package package;
 
-  const PopularCategoryView(this.package, {super.key});
+  const PackageView(this.package, {super.key});
 
   @override
-  PopularCategoryViewScreenState createState() =>
-      PopularCategoryViewScreenState();
+  PackageViewScreenState createState() => PackageViewScreenState();
 }
 
-class PopularCategoryViewScreenState extends State<PopularCategoryView> {
+class PackageViewScreenState extends State<PackageView> {
   late MySavedController savedController;
 
   @override

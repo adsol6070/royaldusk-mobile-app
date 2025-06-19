@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nb_utils/nb_utils.dart';
+import 'package:royaldusk_mobile_app/app/model/package.dart';
 import 'package:royaldusk_mobile_app/constant/app_colors.dart';
 import 'package:royaldusk_mobile_app/widgets/app_widget.dart';
 
@@ -12,17 +13,15 @@ import '../../../constant/strings.dart';
 import '../../../widgets/custom_textview_with_icon.dart';
 import '../../../widgets/grediant_button.dart';
 import '../../controller/trip_detail_controller.dart';
-import '../../model/popular_packages.dart';
 // import '../dashboard/category_view.dart';
 import '../popular_package/custom_review_rating_view.dart';
 // import '../popular_package/flight_details_bottom_sheet.dart';
 // import '../popular_package/hotel_details_bottom_sheet.dart';
 
 class TripDetailScreen extends StatefulWidget {
-  final PopularPackage popularPackage;
+  final Package package;
 
-  const TripDetailScreen({Key? key, required this.popularPackage})
-      : super(key: key);
+  const TripDetailScreen({Key? key, required this.package}) : super(key: key);
 
   @override
   TripDetailScreenState createState() => TripDetailScreenState();
@@ -53,7 +52,7 @@ class TripDetailScreenState extends State<TripDetailScreen> {
                 SizedBox(
                   height: context.w / 1,
                   child: commonCacheImageWidget(
-                    widget.popularPackage.imageUrl,
+                    widget.package.imageUrl,
                     context.w / 1,
                     fit: BoxFit.fill,
                   ),
@@ -95,7 +94,7 @@ class TripDetailScreenState extends State<TripDetailScreen> {
                                 children: <Widget>[
                                   Flexible(
                                     child: Text(
-                                      widget.popularPackage.name.toString(),
+                                      widget.package.name.toString(),
                                       style: const TextStyle(
                                           overflow: TextOverflow.ellipsis,
                                           fontWeight: FontWeight.bold,
@@ -128,14 +127,14 @@ class TripDetailScreenState extends State<TripDetailScreen> {
                                     child: CustomTextViewWithIcon(
                                         fontWeight: FontWeight.w500,
                                         fontSize: textSizeSMedium,
-                                        text: widget.popularPackage.location
-                                            .toString(),
+                                        text:
+                                            widget.package.location.toString(),
                                         icon: mapIcon,
                                         isDarkMode: isDarkMode),
                                   ),
                                   8.width,
                                   CustomReviewRatingViewScreen(
-                                    reviewCount: widget.popularPackage.review,
+                                    reviewCount: widget.package.review,
                                     rating: 4.7, // Or calculate dynamically
                                   ),
                                   8.width,
@@ -166,7 +165,7 @@ class TripDetailScreenState extends State<TripDetailScreen> {
                               ),
                               10.height,
                               Text(
-                                widget.popularPackage.description.toString(),
+                                widget.package.description.toString(),
                                 textAlign: TextAlign.justify,
                                 style: TextStyle(
                                     color: isDarkMode
@@ -192,20 +191,20 @@ class TripDetailScreenState extends State<TripDetailScreen> {
                               //     for (int i = 0;
                               //         i <
                               //             widget
-                              //                 .popularPackage.inclusions.length;
+                              //                 .package.inclusions.length;
                               //         i++)
                               //       CategoryViewScreenState(
                               //         category: widget
-                              //             .popularPackage.inclusions[i].name,
+                              //             .package.inclusions[i].name,
                               //         isDarkMode: isDarkMode,
                               //         onPressed: () {
                               //           switch (widget
-                              //               .popularPackage.inclusions[i].name
+                              //               .package.inclusions[i].name
                               //               .toLowerCase()) {
                               //             case 'hotels':
                               //               HotelDetailsBottomSheet.show(
                               //                 context,
-                              //                 widget.popularPackage.hotelList,
+                              //                 widget.package.hotelList,
                               //                 isDarkMode,
                               //               );
                               //               break;
@@ -239,9 +238,8 @@ class TripDetailScreenState extends State<TripDetailScreen> {
                                     crossAxisCellCount:
                                         4, // full width since it's the only image
                                     mainAxisCellCount: 2,
-                                    child: _buildRoundedImageview(widget
-                                        .popularPackage.imageUrl
-                                        .toString()),
+                                    child: _buildRoundedImageview(
+                                        widget.package.imageUrl.toString()),
                                   ),
                                 ],
                               ),

@@ -36,7 +36,7 @@ class SignUpController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    print('🔧 SignUpController initialized');
+    // print('🔧 SignUpController initialized');
   }
 
   @override
@@ -57,7 +57,7 @@ class SignUpController extends GetxController {
   Future<void> signUpUser() async {
     // Validate form
     if (!formKey.currentState!.validate()) {
-      print('❌ Form validation failed');
+      // print('❌ Form validation failed');
       return;
     }
 
@@ -78,7 +78,7 @@ class SignUpController extends GetxController {
     _dismissKeyboard();
 
     try {
-      print('🚀 Starting signup process...');
+      // print('🚀 Starting signup process...');
 
       // Use AuthController's signup method
       await _authController.signupWithAPI(
@@ -87,27 +87,27 @@ class SignUpController extends GetxController {
         passwordController.text,
       );
 
-      print('✅ Signup API call completed successfully');
+      // print('✅ Signup API call completed successfully');
 
       // Handle successful signup - check auth status after a brief delay
       // to allow any auto-login process to complete
       await Future.delayed(const Duration(milliseconds: 100));
       await _handleSignupSuccess();
     } catch (e) {
-      print('❌ Signup failed: $e');
+      // print('❌ Signup failed: $e');
       _handleSignupError(e.toString());
     }
   }
 
   /// Handle successful signup
   Future<void> _handleSignupSuccess() async {
-    print('✅ Signup successful, handling success...');
-    print('🔍 Checking authentication status...');
-    print('- isLoggedIn: ${_authController.isLoggedIn.value}');
-    print(
-        '- accessToken: ${_authController.accessToken.value.isNotEmpty ? "present" : "absent"}');
-    print(
-        '- userData: ${_authController.userData.isNotEmpty ? "loaded" : "empty"}');
+    // print('✅ Signup successful, handling success...');
+    // print('🔍 Checking authentication status...');
+    // print('- isLoggedIn: ${_authController.isLoggedIn.value}');
+    // print(
+    //     '- accessToken: ${_authController.accessToken.value.isNotEmpty ? "present" : "absent"}');
+    // print(
+    //     '- userData: ${_authController.userData.isNotEmpty ? "loaded" : "empty"}');
 
     // Clear form first
     _clearForm();
@@ -120,7 +120,7 @@ class SignUpController extends GetxController {
         _authController.accessToken.value.isNotEmpty;
 
     if (isAuthenticated) {
-      print('🔑 User is authenticated, navigating to main screen');
+      // print('🔑 User is authenticated, navigating to main screen');
 
       // User is logged in, go to main screen
       Get.offAllNamed(MyRoutes.mainDrawerScreen);
@@ -138,7 +138,7 @@ class SignUpController extends GetxController {
         );
       });
     } else {
-      print('📧 Manual login required, navigating to sign in screen');
+      // print('📧 Manual login required, navigating to sign in screen');
 
       // Manual login required, go to login screen
       Get.offAllNamed(MyRoutes.signIn);
@@ -160,7 +160,7 @@ class SignUpController extends GetxController {
 
   /// Handle signup errors with better error categorization
   void _handleSignupError(String error) {
-    print('❌ Handling signup error: $error');
+    // print('❌ Handling signup error: $error');
 
     // Clean up error message
     String cleanError = error.replaceAll('Exception: ', '');

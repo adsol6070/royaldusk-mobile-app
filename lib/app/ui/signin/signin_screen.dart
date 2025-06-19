@@ -290,33 +290,113 @@ class SignInScreenState extends State<SignInScreen> {
                                 24.height,
 
                                 // Social Login Buttons
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    TextButton(
-                                      style: iconBorderStyle,
-                                      onPressed: () {
-                                        Get.snackbar('Coming Soon',
-                                            'Google Sign In will be available soon');
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8.0),
-                                        child: IconButton(
-                                          icon: SvgPicture.asset(googleIcon),
-                                          iconSize: iconSize,
-                                          onPressed: () {
-                                            Get.snackbar('Coming Soon',
-                                                'Google Sign In will be available soon');
-                                          },
-                                        ),
-                                      ),
+                                // Row(
+                                //   mainAxisAlignment:
+                                //       MainAxisAlignment.spaceEvenly,
+                                //   children: [
+                                //     TextButton(
+                                //       style: iconBorderStyle,
+                                //       onPressed: () {
+                                //         Get.snackbar('Coming Soon',
+                                //             'Google Sign In will be available soon');
+                                //       },
+                                //       child: Padding(
+                                //         padding: const EdgeInsets.symmetric(
+                                //             horizontal: 8.0),
+                                //         child: IconButton(
+                                //           icon: SvgPicture.asset(googleIcon),
+                                //           iconSize: iconSize,
+                                //           onPressed: () {
+                                //             Get.snackbar('Coming Soon',
+                                //                 'Google Sign In will be available soon');
+                                //           },
+                                //         ),
+                                //       ),
+                                //     ),
+                                //   ],
+                                // ),
+                                // 8.height,
+                                // Google Sign-In Button (Updated)
+                                Container(
+                                  width: double.infinity,
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: isDarkMode
+                                          ? whiteColor.withAlpha(31)
+                                          : whiteColor,
+                                      foregroundColor: isDarkMode
+                                          ? whiteColor
+                                          : appTextColorPrimary,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(30.0),
+                                          side: BorderSide(
+                                              color: borderColor.withAlpha(31),
+                                              width: 1)),
                                     ),
-                                  ],
+                                    onPressed: controller.isAnyLoading
+                                        ? null
+                                        : () => controller.signInWithGoogle(),
+                                    child: controller.isGoogleLoading.value
+                                        ? Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              SizedBox(
+                                                height: 20,
+                                                width: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(
+                                                    isDarkMode
+                                                        ? whiteColor
+                                                        : appTextColorPrimary,
+                                                  ),
+                                                ),
+                                              ),
+                                              12.width,
+                                              Text(
+                                                'Signing in with Google...',
+                                                style: TextStyle(
+                                                  color: isDarkMode
+                                                      ? whiteColor
+                                                      : appTextColorPrimary,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        : Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              SvgPicture.asset(
+                                                googleIcon,
+                                                height: 20,
+                                                width: 20,
+                                              ),
+                                              12.width,
+                                              Text(
+                                                'Continue with Google',
+                                                style: TextStyle(
+                                                  color: isDarkMode
+                                                      ? whiteColor
+                                                      : appTextColorPrimary,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                  ),
                                 ),
-                                8.height,
-
+                                24.height,
                                 // Sign Up Link
                                 TextButton(
                                   onPressed: controller.goToSignUpScreen,

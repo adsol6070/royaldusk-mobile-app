@@ -2,6 +2,8 @@ import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decode/jwt_decode.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:convert';
 
 class AuthController extends GetxController {
@@ -9,6 +11,10 @@ class AuthController extends GetxController {
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   final dio.Dio _dio = dio.Dio();
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+  );
 
   // Authentication state
   final RxBool isLoggedIn = false.obs;
@@ -20,8 +26,10 @@ class AuthController extends GetxController {
   final RxBool isAuthenticating = false.obs;
   final RxBool isLoadingUserData = false.obs;
   final RxBool isSigningUp = false.obs; // New state for signup
+  final RxBool isGoogleSigningIn = false.obs;
   final RxString lastLoginError = ''.obs;
   final RxString lastSignupError = ''.obs; // New state for signup errors
+  final RxString lastGoogleSignInError = ''.obs;
 
   // Storage keys
   static const _accessTokenKey = 'access_token';
@@ -222,6 +230,139 @@ class AuthController extends GetxController {
       print('❌ Token refresh failed: $e');
     }
     return false;
+  }
+
+  Future<void> signInWithGoogle() async {
+    isGoogleSigningIn.value = true;
+    lastGoogleSignInError.value = '';
+
+    try {
+      // 1. Sign out from previous Google account to ensure fresh sign-in
+      await _googleSignIn.signOut();
+
+      // 2. Trigger Google Sign-In
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        throw Exception('Sign-in was canceled');
+      }
+      // 3. Get authentication details from the request
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // 4. Create a new credential for Firebase
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // 5. Sign in to Firebase with the Google credentials
+      final UserCredential userCredential =
+          await _firebaseAuth.signInWithCredential(credential);
+
+      // 6. Get the Firebase ID token
+      final String? idToken = await userCredential.user?.getIdToken();
+
+      if (idToken == null) {
+        throw Exception('Failed to get Firebase ID token');
+      }
+
+      // 7. Send the ID token to your backend (handles both sign-in and sign-up)
+      await _authenticateWithBackend(idToken);
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = _parseFirebaseAuthError(e);
+      lastGoogleSignInError.value = errorMessage;
+      throw Exception(errorMessage);
+    } catch (e, stack) {
+      String errorMessage = 'Google sign-in failed. Please try again.';
+
+      if (e.toString().contains('network_error')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (e.toString().contains('sign_in_canceled')) {
+        errorMessage = 'Sign-in was canceled.';
+      } else if (e.toString().contains('User aborted sign-in')) {
+        errorMessage = 'Sign-in was canceled.';
+      }
+
+      lastGoogleSignInError.value = errorMessage;
+      throw Exception(errorMessage);
+    } finally {
+      isGoogleSigningIn.value = false;
+      print('🧭 Google Sign-In process completed');
+    }
+  }
+
+  /// Authenticate with your backend using Firebase ID token
+  /// This method handles both sign-in and sign-up automatically
+  ///
+  Future<void> _authenticateWithBackend(String firebaseIdToken) async {
+    try {
+      final response = await _dio.post('/user-service/api/auth/google', data: {
+        'idToken': firebaseIdToken,
+      });
+      // Check expected structure
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data is! Map<String, dynamic>) {
+          throw Exception('Unexpected backend response format');
+        }
+
+        final Map<String, dynamic> responseData =
+            response.data as Map<String, dynamic>;
+
+        if (responseData['status'] == 'success') {
+          final access = responseData['access_token'];
+          final refresh = responseData['refresh_token'];
+
+          if (access != null) {
+            await _storeTokens(access, refresh);
+            await _fetchUserDataFromAPI();
+          } else {
+            throw Exception('Invalid response from server - no access token');
+          }
+        } else {
+          final errorMessage = responseData['message'] ??
+              responseData['error'] ??
+              'Google authentication failed';
+          throw Exception(errorMessage);
+        }
+      } else {
+        throw Exception('Login failed: ${response.data}');
+      }
+    } on dio.DioException catch (e) {
+      String errorMessage = _parseDioError(e);
+
+      if (e.response?.statusCode == 400) {
+        errorMessage = 'Invalid Google authentication. Please try again.';
+      } else if (e.response?.statusCode == 409) {
+        errorMessage = 'Account already exists with different credentials.';
+      } else if (e.response?.statusCode == 422) {
+        errorMessage = 'Invalid Google token. Please try again.';
+      }
+
+      throw Exception(errorMessage);
+    }
+  }
+
+  /// Parse Firebase Auth errors
+  String _parseFirebaseAuthError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'account-exists-with-different-credential':
+        return 'An account already exists with a different sign-in method.';
+      case 'invalid-credential':
+        return 'The credential is invalid or has expired.';
+      case 'operation-not-allowed':
+        return 'Google sign-in is not enabled for this app.';
+      case 'user-disabled':
+        return 'This user account has been disabled.';
+      case 'user-not-found':
+        return 'No user found with this credential.';
+      case 'wrong-password':
+        return 'Invalid password.';
+      case 'network-request-failed':
+        return 'Network error. Please check your internet connection.';
+      default:
+        return e.message ?? 'Google sign-in failed. Please try again.';
+    }
   }
 
   /// Enhanced signup method with comprehensive error handling

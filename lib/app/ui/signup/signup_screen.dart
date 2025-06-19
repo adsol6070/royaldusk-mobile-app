@@ -9,7 +9,7 @@ import 'package:royaldusk_mobile_app/constant/app_images.dart';
 import 'package:royaldusk_mobile_app/widgets/app_widget.dart';
 import 'package:royaldusk_mobile_app/widgets/grediant_button.dart';
 import 'package:royaldusk_mobile_app/constant/strings.dart';
-
+import '../../controller/signin_controller.dart';
 import '../../controller/signup_controller.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -21,6 +21,7 @@ class SignUpScreen extends StatefulWidget {
 
 class SignUpScreenState extends State<SignUpScreen> {
   late SignUpController controller;
+  late SignInController signIncontroller;
   late bool isDarkMode;
 
   @override
@@ -31,6 +32,7 @@ class SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     controller = Get.put(SignUpController(context));
+    signIncontroller = Get.put(SignInController(context));
     isDarkMode = controller.themeController.isDarkMode;
 
     final ButtonStyle iconBorderStyle = ElevatedButton.styleFrom(
@@ -414,31 +416,111 @@ class SignUpScreenState extends State<SignUpScreen> {
                                 24.height,
 
                                 // Social Signup Buttons
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    TextButton(
-                                      style: iconBorderStyle,
-                                      onPressed: () {
-                                        // TODO: Implement Google signup
-                                        Get.snackbar('Coming Soon',
-                                            'Google Sign Up will be available soon');
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8.0),
-                                        child: IconButton(
-                                          icon: SvgPicture.asset(googleIcon),
-                                          iconSize: iconSize,
-                                          onPressed: null,
-                                        ),
-                                      ),
+                                // Row(
+                                //   mainAxisAlignment:
+                                //       MainAxisAlignment.spaceEvenly,
+                                //   children: [
+                                //     TextButton(
+                                //       style: iconBorderStyle,
+                                //       onPressed: () {
+                                //         // TODO: Implement Google signup
+                                //         Get.snackbar('Coming Soon',
+                                //             'Google Sign Up will be available soon');
+                                //       },
+                                //       child: Padding(
+                                //         padding: const EdgeInsets.symmetric(
+                                //             horizontal: 8.0),
+                                //         child: IconButton(
+                                //           icon: SvgPicture.asset(googleIcon),
+                                //           iconSize: iconSize,
+                                //           onPressed: null,
+                                //         ),
+                                //       ),
+                                //     ),
+                                //   ],
+                                // ),
+                                // 8.height,
+    // Google Sign-In Button (Updated)
+                                Container(
+                                  width: double.infinity,
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: isDarkMode
+                                          ? whiteColor.withAlpha(31)
+                                          : whiteColor,
+                                      foregroundColor: isDarkMode
+                                          ? whiteColor
+                                          : appTextColorPrimary,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(30.0),
+                                          side: BorderSide(
+                                              color: borderColor.withAlpha(31),
+                                              width: 1)),
                                     ),
-                                  ],
+                                    onPressed: signIncontroller.isAnyLoading
+                                        ? null
+                                        : () => signIncontroller.signInWithGoogle(),
+                                    child: signIncontroller.isGoogleLoading.value
+                                        ? Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              SizedBox(
+                                                height: 20,
+                                                width: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(
+                                                    isDarkMode
+                                                        ? whiteColor
+                                                        : appTextColorPrimary,
+                                                  ),
+                                                ),
+                                              ),
+                                              12.width,
+                                              Text(
+                                                'Signing in with Google...',
+                                                style: TextStyle(
+                                                  color: isDarkMode
+                                                      ? whiteColor
+                                                      : appTextColorPrimary,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        : Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              SvgPicture.asset(
+                                                googleIcon,
+                                                height: 20,
+                                                width: 20,
+                                              ),
+                                              12.width,
+                                              Text(
+                                                'Continue with Google',
+                                                style: TextStyle(
+                                                  color: isDarkMode
+                                                      ? whiteColor
+                                                      : appTextColorPrimary,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                  ),
                                 ),
-                                8.height,
-
+                                24.height,
                                 // Sign In Link
                                 TextButton(
                                   onPressed: controller.goToSignInScreen,

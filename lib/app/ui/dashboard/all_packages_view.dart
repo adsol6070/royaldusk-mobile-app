@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
-import 'package:royaldusk_mobile_app/app/model/popular_packages.dart';
+import 'package:royaldusk_mobile_app/app/model/package.dart';
 import 'package:royaldusk_mobile_app/constant/app_images.dart';
 import 'package:royaldusk_mobile_app/widgets/custom_textview_with_diff_color.dart';
 import 'package:royaldusk_mobile_app/widgets/custom_textview_with_icon.dart';
@@ -9,7 +9,7 @@ import '../../../widgets/app_widget.dart';
 import '../../../widgets/rounded_imageview.dart';
 
 class AllPackagesViewScreenState extends StatefulWidget {
-  final PopularPackage package;
+  final Package package;
   final bool isDarkMode;
 
   const AllPackagesViewScreenState({

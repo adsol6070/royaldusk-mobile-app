@@ -1,4 +1,5 @@
-import 'package:get/get_navigation/src/routes/get_route.dart';
+import 'package:royaldusk_mobile_app/app/enums/package_types.dart';
+import 'package:royaldusk_mobile_app/app/ui/package/package_list_screen.dart';
 import 'package:royaldusk_mobile_app/middleware/auth_middleware.dart';
 
 import '../app/ui/dashboard/main_home_screen.dart';
@@ -10,8 +11,7 @@ import '../app/ui/hotel/hotel_list_screen.dart';
 import '../app/ui/password/new_password_screen.dart';
 import '../app/ui/otp/otp_verfication_screen.dart';
 import '../app/ui/place/popular_places_screen.dart';
-import '../app/ui/popular_package/confirmation_screen.dart';
-import '../app/ui/popular_package/popular_package_screen.dart';
+import '../app/ui/package/confirmation_screen.dart';
 import '../app/ui/profile/my_profile_screen.dart';
 import '../app/ui/password/reset_password.dart';
 import '../app/ui/search/serach_result_screen.dart';
@@ -20,6 +20,7 @@ import '../app/ui/signin/signin_screen.dart';
 import '../app/ui/signup/signup_screen.dart';
 import '../app/ui/spalsh_screen.dart';
 import '../app/ui/welcome/welcome_screen.dart';
+import 'package:get/get.dart';
 
 class MyRoutes {
   static const initial = '/splash';
@@ -31,6 +32,7 @@ class MyRoutes {
   static const newPassword = '/new_password';
   static const mainHomeScreen = '/main_home_screen';
   static const mainDrawerScreen = '/main_drawer_screen';
+  static const packageListScreen = '/package-list';
   static const popularPackageScreen = '/popular_package_screen';
   static const topPackageScreen = '/top_package_screen';
   static const flightScreen = '/flight_screen';
@@ -68,9 +70,11 @@ class MyRoutes {
         page: () => MainDrawerScreen(),
         middlewares: [AuthMiddleware()]),
     GetPage(
-        name: popularPackageScreen,
-        page: () => const PopularPackageScreen(),
-        middlewares: [AuthMiddleware()]),
+        name: packageListScreen,
+        page: () {
+          final PackageType packageType = Get.arguments as PackageType;
+          return PackageListScreen(packageType: packageType);
+        }),
     // GetPage(name: topPackageScreen, page: )
     GetPage(
         name: flightScreen,

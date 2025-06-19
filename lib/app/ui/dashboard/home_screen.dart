@@ -1,7 +1,11 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dots_indicator/dots_indicator.dart';
+import 'package:royaldusk_mobile_app/app/enums/package_types.dart';
+import 'package:royaldusk_mobile_app/app/model/package.dart';
 import 'package:royaldusk_mobile_app/app/ui/dashboard/popular_category_view.dart';
 import 'package:royaldusk_mobile_app/app/ui/dashboard/top_package_screen.dart';
+import 'package:royaldusk_mobile_app/app/ui/package/package_detail_screen.dart';
+import 'package:royaldusk_mobile_app/route/my_route.dart';
 import 'package:royaldusk_mobile_app/widgets/custom_see_more_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -15,9 +19,7 @@ import '../../../widgets/app_widget.dart';
 import '../../../widgets/decorated_input_border.dart';
 import '../../controller/home_controller.dart';
 import '../../model/category.dart';
-import '../../model/popular_packages.dart';
 import '../my_app_bar.dart';
-import '../popular_package/popular_package_detail_screen.dart';
 import 'all_packages_view.dart';
 import 'category_view.dart';
 
@@ -88,20 +90,31 @@ class HomeScreenState extends State<HomeScreen> {
                     20.height,
                     CustomTextSeeMore(
                       title: "${controller.filteredPackages.length} Packages",
-                      onPressed: () {},
+                      onPressed: () {
+                        Get.toNamed(MyRoutes.packageListScreen,
+                            arguments: PackageType.all);
+                      },
                     ),
                     10.height,
                     _buildPackagesList(),
                     20.height,
                     CustomTextSeeMore(
-                        title: popularPackages,
-                        onPressed: () {
-                          controller.goToPopularPackageScreen();
-                        }),
+                      title: popularPackages,
+                      onPressed: () {
+                        Get.toNamed(MyRoutes.packageListScreen,
+                            arguments: PackageType.popular);
+                      },
+                    ),
                     10.height,
                     _buildPopularView(),
                     20.height,
-                    CustomTextSeeMore(title: topPackages, onPressed: () {}),
+                    CustomTextSeeMore(
+                      title: topPackages,
+                      onPressed: () {
+                        Get.toNamed(MyRoutes.packageListScreen,
+                            arguments: PackageType.top);
+                      },
+                    ),
                     10.height,
                     _buildTopPackagesList(),
                     10.height,
@@ -200,7 +213,7 @@ class HomeScreenState extends State<HomeScreen> {
                 category: cat,
                 isDarkMode: isDarkMode,
                 onPressed: () {
-                  if (i == 0) controller.goToPopularPackageScreen();
+                  if (i == 0) controller.goToAllPackageScreen();
                 },
               );
             },
@@ -238,10 +251,10 @@ class HomeScreenState extends State<HomeScreen> {
             padding: EdgeInsets.zero,
             itemCount: controller.filteredPackages.length,
             itemBuilder: (ctx, i) {
-              PopularPackage package = controller.filteredPackages[i];
+              Package package = controller.filteredPackages[i];
               return InkWell(
                 onTap: () => Get.to(
-                  PopularPackageDetailScreen(popularPackage: package),
+                  PackageDetailScreen(package: package),
                 ),
                 child: AllPackagesViewScreenState(
                   package: package,
@@ -256,7 +269,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   _buildTopPackagesList() {
-    return FutureBuilder<List<PopularPackage>>(
+    return FutureBuilder<List<Package>>(
       future: controller.getAllTopPackages(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -274,12 +287,10 @@ class HomeScreenState extends State<HomeScreen> {
                     shrinkWrap: true,
                     scrollDirection: Axis.vertical,
                     itemBuilder: (context, index) {
-                      PopularPackage pkg = controller.topPackages[index];
+                      Package pkg = controller.topPackages[index];
                       return InkWell(
                         child: TopPackagesScreen(pkg, isDarkMode),
-                        onTap: () => Get.to(
-                          PopularPackageDetailScreen(popularPackage: pkg),
-                        ),
+                        onTap: () => Get.to(PackageDetailScreen(package: pkg)),
                       );
                     },
                   ),

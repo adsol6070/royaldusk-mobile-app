@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nb_utils/nb_utils.dart';
+import 'package:royaldusk_mobile_app/app/model/package.dart';
 import 'package:royaldusk_mobile_app/constant/app_colors.dart';
 import 'package:royaldusk_mobile_app/constant/app_images.dart';
 import 'package:royaldusk_mobile_app/widgets/app_widget.dart';
 
 import '../../../constant/strings.dart';
 import '../../../widgets/custom_textview_with_diff_color.dart';
-import '../../model/popular_packages.dart';
 
 class TopPackagesScreen extends StatefulWidget {
-  final PopularPackage popularPackage;
+  final Package package;
   final bool isDarkMode;
 
-  const TopPackagesScreen(this.popularPackage, this.isDarkMode, {super.key});
+  const TopPackagesScreen(this.package, this.isDarkMode, {super.key});
 
   @override
   TopPackagesScreenState createState() => TopPackagesScreenState();
@@ -46,7 +46,7 @@ class TopPackagesScreenState extends State<TopPackagesScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15.0),
                 child: commonCacheImageWidget(
-                    widget.popularPackage.imageUrl.toString(), 80),
+                    widget.package.imageUrl.toString(), 80),
               ),
             ),
             8.width,
@@ -56,7 +56,7 @@ class TopPackagesScreenState extends State<TopPackagesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.popularPackage.name.toString(),
+                    widget.package.name.toString(),
                     textAlign: TextAlign.start,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -77,7 +77,7 @@ class TopPackagesScreenState extends State<TopPackagesScreen> {
                       Flexible(
                         fit: FlexFit.loose,
                         child: Text(
-                          widget.popularPackage.location.name.toString(),
+                          widget.package.location.name.toString(),
                           softWrap: false,
                           overflow: TextOverflow.fade,
                           style: primaryTextStyle(
@@ -99,7 +99,7 @@ class TopPackagesScreenState extends State<TopPackagesScreen> {
                       ),
                       6.width,
                       CustomTextViewWithStyle(
-                        text1: widget.popularPackage.price.toString(),
+                        text1: widget.package.price.toString(),
                         text2: night,
                         isDarkMode: widget.isDarkMode,
                       )
@@ -121,7 +121,7 @@ class TopPackagesScreenState extends State<TopPackagesScreen> {
                     ),
                     5.width,
                     Text(
-                      "(${widget.popularPackage.review})",
+                      "(${widget.package.review})",
                       style: TextStyle(
                           fontSize: textSizeSmall,
                           color: widget.isDarkMode
