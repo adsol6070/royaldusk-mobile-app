@@ -1,83 +1,46 @@
-import 'package:royaldusk_mobile_app/app/controller/auth_controller.dart';
-import 'package:royaldusk_mobile_app/app/services/stripe_service.dart';
-import 'package:royaldusk_mobile_app/route/my_route.dart';
-import 'package:royaldusk_mobile_app/theme/styles.dart';
-import 'package:royaldusk_mobile_app/utils/flutter_web_frame/flutter_web_frame.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-
-import 'app/controller/theme_controller.dart';
+import 'package:royaldusk_mobile_app/screens/booking_screen.dart';
+import 'package:royaldusk_mobile_app/screens/cart_screen.dart';
+import 'package:royaldusk_mobile_app/screens/dashboard_screen.dart';
+import 'package:royaldusk_mobile_app/screens/package_list_screen.dart';
+import 'package:royaldusk_mobile_app/screens/profile_screen.dart';
+import 'package:royaldusk_mobile_app/screens/wish_list_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:royaldusk_mobile_app/services/auth_service.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeStripe();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await GetStorage.init();
+
+  AuthService.initialize();
   runApp(const MyApp());
 }
 
-Future<void> initializeStripe() async {
-  try {
-    // Initialize Stripe service
-    await StripeService.init();
-
-    print('✅ Stripe initialized successfully');
-  } catch (e) {
-    print('❌ Failed to initialize Stripe: $e');
-    // Handle initialization error as needed
-  }
-}
-
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  MyAppState createState() => MyAppState();
-}
-
-class MyAppState extends State<MyApp> {
-  final ThemeController controller = Get.put(ThemeController());
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
-    return FlutterWebFrame(
-      builder: (context) {
-        return Obx(
-          () {
-            return GetMaterialApp(
-              debugShowCheckedModeBanner: false,
-              theme:
-                  controller.isDarkMode ? Styles.darkTheme : Styles.lightTheme,
-              getPages: MyRoutes.routes,
-              initialRoute: MyRoutes.initial,
-              initialBinding: BindingsBuilder(() {
-                Get.put(AuthController(), permanent: true);
-              }),
-            );
-          },
-          // ),
-        );
+    return MaterialApp(
+      title: 'Royal Dusk Tours',
+      theme: ThemeData(
+        primarySwatch: Colors.orange,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        fontFamily: 'Inter', // You can change this to your preferred font
+      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const DashboardScreen(),
+        '/cart': (context) => const CartScreen(),
+        '/packages': (context) => const PackageListScreen(),
+        '/bookings': (context) => const BookingsScreen(),
+        '/wishlist': (context) => const WishlistScreen(),
+        '/profile': (context) => const ProfileScreen(),
       },
-      maximumSize: const Size(475.0, 812.0),
-      enabled: kIsWeb, // default is enable, when disable content is full size
-      backgroundColor: Colors.grey, // Background color/white space
+      debugShowCheckedModeBanner: false,
     );
   }
-// child: ,
-// );
-// }
 }
