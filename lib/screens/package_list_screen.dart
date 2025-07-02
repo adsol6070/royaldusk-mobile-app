@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:royaldusk_mobile_app/constants/app_colors.dart';
 import 'package:royaldusk_mobile_app/models/package.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PackageListScreen extends StatefulWidget {
   const PackageListScreen({super.key});
@@ -19,6 +20,12 @@ class _PackageListScreenState extends State<PackageListScreen>
   String _selectedSortBy = 'Popular';
   String _searchQuery = '';
   bool _isListView = false;
+
+  // Contact information
+  static const String bookingPhoneNumber = '+91-98761-49140';
+  static const String bookingEmail = 'go@royaldusk.com';
+  static const String whatsappNumber =
+      '+919876149140'; // Without dashes for WhatsApp
 
   final List<String> categories = [
     'All',
@@ -205,6 +212,398 @@ class _PackageListScreenState extends State<PackageListScreen>
     super.dispose();
   }
 
+  // Contact methods
+  Future<void> _makePhoneCall() async {
+    final Uri phoneUri = Uri(scheme: 'tel', path: bookingPhoneNumber);
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    } else {
+      _showContactDialog();
+    }
+  }
+
+  Future<void> _sendEmail(String packageName, String price) async {
+    final subject = 'Booking Inquiry: $packageName';
+    final body =
+        'Dear Royal Dusk Tours,\n\nI am interested in booking the "$packageName" package (AED $price /person).\n\nPlease provide me with:\n- Detailed itinerary\n- Available dates\n- Booking process\n- Payment options\n\nThank you!\n\nBest regards';
+
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: bookingEmail,
+      query:
+          'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
+    );
+    if (await canLaunchUrl(emailUri)) {
+      await launchUrl(emailUri);
+    } else {
+      _showContactDialog();
+    }
+  }
+
+  Future<void> _openWhatsAppWithPackage(
+      String packageName, String price) async {
+    final message =
+        'Hi! I\'m interested in booking the "$packageName" package (AED $price /person). Could you please provide more details and help me with the booking?';
+    final Uri whatsappUri = Uri.parse(
+        'https://wa.me/$whatsappNumber?text=${Uri.encodeComponent(message)}');
+    if (await canLaunchUrl(whatsappUri)) {
+      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+    } else {
+      _showContactDialog();
+    }
+  }
+
+  void _showContactDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Icon(
+                Icons.contact_phone,
+                color: AppColors.primaryOrange,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Contact Us',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Get in touch with us to book your perfect trip:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.mediumGray,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _buildContactOption(
+                icon: Icons.phone,
+                title: 'Call Us',
+                subtitle: bookingPhoneNumber,
+                onTap: () {
+                  Navigator.pop(context);
+                  _makePhoneCall();
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildContactOption(
+                icon: Icons.email,
+                title: 'Email Us',
+                subtitle: bookingEmail,
+                onTap: () {
+                  Navigator.pop(context);
+                  _sendEmail('General Inquiry', '');
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildContactOption(
+                icon: Icons.chat,
+                title: 'WhatsApp',
+                subtitle: 'Chat with us instantly',
+                onTap: () {
+                  Navigator.pop(context);
+                  _openWhatsAppWithPackage('General Inquiry', '');
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Close',
+                style: TextStyle(color: AppColors.mediumGray),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildContactOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.lightOrange,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                color: AppColors.primaryOrange,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkGray,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.mediumGray,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: AppColors.mediumGray,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showBookingDialog(Package package) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Icon(
+                Icons.card_travel,
+                color: AppColors.primaryOrange,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Book Package',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.lightOrange,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      package.name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.darkGray,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on,
+                            size: 12, color: AppColors.mediumGray),
+                        const SizedBox(width: 4),
+                        Text(
+                          package.location,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.mediumGray,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(Icons.access_time,
+                            size: 12, color: AppColors.mediumGray),
+                        const SizedBox(width: 4),
+                        Text(
+                          package.duration,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.mediumGray,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'AED ${package.price} /person',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryOrange,
+                      ),
+                    ),
+                    if (package.originalPrice > package.price)
+                      Text(
+                        'Original: AED ${package.originalPrice}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.mediumGray,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Choose your preferred booking method:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.mediumGray,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildBookingOption(
+                icon: Icons.phone,
+                title: 'Call to Book',
+                subtitle: 'Speak with our travel experts',
+                onTap: () {
+                  Navigator.pop(context);
+                  _makePhoneCall();
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildBookingOption(
+                icon: Icons.chat,
+                title: 'WhatsApp Booking',
+                subtitle: 'Quick booking via WhatsApp',
+                onTap: () {
+                  Navigator.pop(context);
+                  _openWhatsAppWithPackage(
+                      package.name, package.price.toString());
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildBookingOption(
+                icon: Icons.email,
+                title: 'Email Inquiry',
+                subtitle: 'Get detailed information',
+                onTap: () {
+                  Navigator.pop(context);
+                  _sendEmail(package.name, package.price.toString());
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.mediumGray),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBookingOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.lightOrange,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: AppColors.primaryOrange,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkGray,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.mediumGray,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 12,
+              color: AppColors.mediumGray,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -264,6 +663,14 @@ class _PackageListScreenState extends State<PackageListScreen>
               _isListView = !_isListView;
             });
           },
+        ),
+        IconButton(
+          icon: const Icon(
+            Icons.phone,
+            color: AppColors.primaryOrange,
+            size: 22,
+          ),
+          onPressed: _makePhoneCall,
         ),
         const SizedBox(width: 8),
       ],
@@ -503,443 +910,468 @@ class _PackageListScreenState extends State<PackageListScreen>
   }
 
   Widget _buildPackageGridCard(Package package) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image section
-          Stack(
-            children: [
-              Container(
-                height: 120,
-                decoration: BoxDecoration(
-                  color: AppColors.lightOrange,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  ),
-                  image: DecorationImage(
-                    image: NetworkImage(package.imageUrl),
-                    fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () => _showBookingDialog(package),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryOrange.withValues(alpha: 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image section
+            Stack(
+              children: [
+                Container(
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightOrange,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                    image: DecorationImage(
+                      image: NetworkImage(package.imageUrl),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
-              ),
-              // Popular badge
-              if (package.isPopular)
+                // Popular badge
+                if (package.isPopular)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        'Popular',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                // Discount badge
+                if (package.originalPrice > package.price)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${(((package.originalPrice - package.price) / package.originalPrice) * 100).round()}% OFF',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                // Location badge
                 Positioned(
-                  top: 8,
+                  bottom: 8,
                   left: 8,
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.black.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
-                      'Popular',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              // Discount badge
-              if (package.originalPrice > package.price)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${(((package.originalPrice - package.price) / package.originalPrice) * 100).round()}% OFF',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              // Location badge
-              Positioned(
-                bottom: 8,
-                left: 8,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.location_on,
-                        color: Colors.white,
-                        size: 8,
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        package.location.split(',').first,
-                        style: const TextStyle(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.location_on,
                           color: Colors.white,
-                          fontSize: 8,
-                          fontWeight: FontWeight.w500,
+                          size: 8,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 2),
+                        Text(
+                          package.location.split(',').first,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          // Content section
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Rating and duration
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 4, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.lightOrange,
-                          borderRadius: BorderRadius.circular(4),
+              ],
+            ),
+            // Content section
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Rating and duration
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.lightOrange,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.access_time,
+                                  size: 8, color: AppColors.primaryOrange),
+                              const SizedBox(width: 2),
+                              Text(
+                                package.duration,
+                                style: const TextStyle(
+                                  color: AppColors.primaryOrange,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                        Row(
                           children: [
-                            const Icon(Icons.access_time,
-                                size: 8, color: AppColors.primaryOrange),
+                            const Icon(Icons.star,
+                                color: AppColors.primaryOrange, size: 10),
                             const SizedBox(width: 2),
                             Text(
-                              package.duration,
+                              '${package.rating}',
                               style: const TextStyle(
                                 color: AppColors.primaryOrange,
-                                fontSize: 8,
+                                fontSize: 9,
                                 fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              ' (${package.reviewCount})',
+                              style: const TextStyle(
+                                color: AppColors.mediumGray,
+                                fontSize: 8,
                               ),
                             ),
                           ],
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // Package name
+                    Text(
+                      package.name,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.darkGray,
                       ),
-                      Row(
-                        children: [
-                          const Icon(Icons.star,
-                              color: AppColors.primaryOrange, size: 10),
-                          const SizedBox(width: 2),
-                          Text(
-                            '${package.rating}',
-                            style: const TextStyle(
-                              color: AppColors.primaryOrange,
-                              fontSize: 9,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    // Price and button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (package.originalPrice > package.price)
+                              Text(
+                                'AED ${package.originalPrice}',
+                                style: const TextStyle(
+                                  fontSize: 9,
+                                  color: AppColors.mediumGray,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                            Text(
+                              'AED ${package.price}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryOrange,
+                              ),
+                            ),
+                            const Text(
+                              '/person',
+                              style: TextStyle(
+                                fontSize: 8,
+                                color: AppColors.mediumGray,
+                              ),
+                            ),
+                          ],
+                        ),
+                        ElevatedButton(
+                          onPressed: () => _showBookingDialog(package),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryOrange,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            minimumSize: const Size(0, 24),
+                          ),
+                          child: const Text(
+                            'Book',
+                            style: TextStyle(
+                              fontSize: 10,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          Text(
-                            ' (${package.reviewCount})',
-                            style: const TextStyle(
-                              color: AppColors.mediumGray,
-                              fontSize: 8,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  // Package name
-                  Text(
-                    package.name,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.darkGray,
+                        ),
+                      ],
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Spacer(),
-                  // Price and button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (package.originalPrice > package.price)
-                            Text(
-                              'AED ${package.originalPrice}',
-                              style: const TextStyle(
-                                fontSize: 9,
-                                color: AppColors.mediumGray,
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ),
-                          Text(
-                            'AED ${package.price}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryOrange,
-                            ),
-                          ),
-                          const Text(
-                            '/person',
-                            style: TextStyle(
-                              fontSize: 8,
-                              color: AppColors.mediumGray,
-                            ),
-                          ),
-                        ],
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Add to cart functionality
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryOrange,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          minimumSize: const Size(0, 24),
-                        ),
-                        child: const Text(
-                          'Add',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildPackageListCard(Package package) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Image section
-          Stack(
-            children: [
-              Container(
-                width: 120,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: AppColors.lightOrange,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
-                  ),
-                  image: DecorationImage(
-                    image: NetworkImage(package.imageUrl),
-                    fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () => _showBookingDialog(package),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryOrange.withValues(alpha: 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Image section
+            Stack(
+              children: [
+                Container(
+                  width: 120,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightOrange,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      bottomLeft: Radius.circular(12),
+                    ),
+                    image: DecorationImage(
+                      image: NetworkImage(package.imageUrl),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
-              ),
-              if (package.isPopular)
-                Positioned(
-                  top: 6,
-                  left: 6,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Popular',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 7,
-                        fontWeight: FontWeight.w600,
+                if (package.isPopular)
+                  Positioned(
+                    top: 6,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          // Content section
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          package.name,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.darkGray,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      child: const Text(
+                        'Popular',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 7,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Row(
-                        children: [
-                          const Icon(Icons.star,
-                              color: AppColors.primaryOrange, size: 12),
-                          const SizedBox(width: 2),
-                          Text(
-                            '${package.rating}',
+                    ),
+                  ),
+                if (package.originalPrice > package.price)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${(((package.originalPrice - package.price) / package.originalPrice) * 100).round()}% OFF',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 7,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            // Content section
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            package.name,
                             style: const TextStyle(
-                              color: AppColors.primaryOrange,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.darkGray,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            const Icon(Icons.star,
+                                color: AppColors.primaryOrange, size: 12),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${package.rating}',
+                              style: const TextStyle(
+                                color: AppColors.primaryOrange,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on,
+                            size: 12, color: AppColors.mediumGray),
+                        const SizedBox(width: 2),
+                        Text(
+                          package.location,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.mediumGray,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Icon(Icons.access_time,
+                            size: 12, color: AppColors.mediumGray),
+                        const SizedBox(width: 2),
+                        Text(
+                          package.duration,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.mediumGray,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      package.description,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.mediumGray,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (package.originalPrice > package.price)
+                              Text(
+                                'AED ${package.originalPrice}',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.mediumGray,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                            Text(
+                              'AED ${package.price}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryOrange,
+                              ),
+                            ),
+                          ],
+                        ),
+                        ElevatedButton(
+                          onPressed: () => _showBookingDialog(package),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryOrange,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                          child: const Text(
+                            'Book Now',
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on,
-                          size: 12, color: AppColors.mediumGray),
-                      const SizedBox(width: 2),
-                      Text(
-                        package.location,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.mediumGray,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Icon(Icons.access_time,
-                          size: 12, color: AppColors.mediumGray),
-                      const SizedBox(width: 2),
-                      Text(
-                        package.duration,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.mediumGray,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    package.description,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: AppColors.mediumGray,
-                      height: 1.2,
+                      ],
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (package.originalPrice > package.price)
-                            Text(
-                              'AED ${package.originalPrice}',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: AppColors.mediumGray,
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ),
-                          Text(
-                            'AED ${package.price}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryOrange,
-                            ),
-                          ),
-                        ],
-                      ),
-                      ElevatedButton(
-                        onPressed: () {Navigator.pushNamed(context, '/comingSoon');},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryOrange,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        ),
-                        child: const Text(
-                          'Add to Cart',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

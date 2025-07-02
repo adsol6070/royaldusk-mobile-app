@@ -40,19 +40,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       centerTitle: true,
       automaticallyImplyLeading: false,
-      actions: AuthService.isSignedIn
-          ? [
-              IconButton(
-                icon: const Icon(Icons.settings_outlined,
-                    color: AppColors.mediumGray),
-                onPressed: () {
-                  // Navigate to settings
-                  Navigator.pushNamed(context, '/comingSoon');
-                },
-              ),
-              const SizedBox(width: 8),
-            ]
-          : null,
+      // actions: AuthService.isSignedIn
+      //     ? [
+      //         IconButton(
+      //           icon: const Icon(Icons.settings_outlined,
+      //               color: AppColors.mediumGray),
+      //           onPressed: () {
+      //             // Navigate to settings
+      //             Navigator.pushNamed(context, '/comingSoon');
+      //           },
+      //         ),
+      //         const SizedBox(width: 8),
+      //       ]
+      //     : null,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
         child: Container(
@@ -70,7 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildGuestHeader(),
           _buildSignInOptions(),
           _buildGuestFeatures(),
-          _buildAppFeatures(),
+          // _buildAppFeatures(),
         ],
       ),
     );
@@ -340,7 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           _buildProfileHeader(user),
           _buildQuickActions(),
-          _buildProfileMenu(),
+          // _buildProfileMenu(),
           _buildAppInfo(),
         ],
       ),
@@ -758,32 +758,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Column(
         children: [
-          _buildMenuItem(
-            icon: Icons.headset_mic_outlined,
-            title: 'Customer Support',
-            subtitle: 'Get help 24/7',
-            onTap: () {
-              Navigator.pushNamed(context, '/comingSoon');
-            },
-          ),
-          _buildMenuDivider(),
-          _buildMenuItem(
-            icon: Icons.share_outlined,
-            title: 'Invite Friends',
-            subtitle: 'Share Royal Dusk Tours',
-            onTap: () {
-              Navigator.pushNamed(context, '/comingSoon');
-            },
-          ),
-          _buildMenuDivider(),
-          _buildMenuItem(
-            icon: Icons.star_outline,
-            title: 'Rate Our App',
-            subtitle: 'Help us improve',
-            onTap: () {
-              Navigator.pushNamed(context, '/comingSoon');
-            },
-          ),
+          // _buildMenuItem(
+          //   icon: Icons.headset_mic_outlined,
+          //   title: 'Customer Support',
+          //   subtitle: 'Get help 24/7',
+          //   onTap: () {
+          //     Navigator.pushNamed(context, '/comingSoon');
+          //   },
+          // ),
+          // _buildMenuDivider(),
+          // _buildMenuItem(
+          //   icon: Icons.share_outlined,
+          //   title: 'Invite Friends',
+          //   subtitle: 'Share Royal Dusk Tours',
+          //   onTap: () {
+          //     Navigator.pushNamed(context, '/comingSoon');
+          //   },
+          // ),
+          // _buildMenuDivider(),
+          // _buildMenuItem(
+          //   icon: Icons.star_outline,
+          //   title: 'Rate Our App',
+          //   subtitle: 'Help us improve',
+          //   onTap: () {
+          //     Navigator.pushNamed(context, '/comingSoon');
+          //   },
+          // ),
           _buildMenuDivider(),
           _buildMenuItem(
             icon: Icons.delete_outline,

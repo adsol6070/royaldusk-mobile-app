@@ -35,8 +35,8 @@ class MyApp extends StatelessWidget {
         '/': (context) => const MainNavigationScreen(),
         '/cart': (context) => const CartScreen(),
         '/packages': (context) => const PackageListScreen(),
-         '/profile': (context) => const ProfileScreen(),
-         '/comingSoon': (context) => const ComingSoonScreen(),
+        '/profile': (context) => const ProfileScreen(),
+        '/comingSoon': (context) => const ComingSoonScreen(),
       },
       debugShowCheckedModeBanner: false,
     );

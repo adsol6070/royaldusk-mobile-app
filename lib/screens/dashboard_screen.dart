@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:royaldusk_mobile_app/constants/app_colors.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DashboardScreen extends StatefulWidget {
   final bool showAppBar;
@@ -17,6 +18,12 @@ class _DashboardScreenState extends State<DashboardScreen>
   int _selectedServiceIndex = 0;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+
+  // Contact information
+  static const String bookingPhoneNumber = '+91-98761-49140';
+  static const String bookingEmail = 'go@royaldusk.com';
+  static const String whatsappNumber =
+      '+919876149140'; // Without dashes for WhatsApp
 
   @override
   void initState() {
@@ -35,10 +42,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     _animationController.dispose();
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _navigateToCart() {
-    Navigator.pushNamed(context, '/cart');
   }
 
   // Helper method to get responsive values
@@ -60,6 +63,450 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (screenWidth >= 1200) return 40;
     if (screenWidth >= 768) return 32;
     return 20;
+  }
+
+  // Contact methods
+  Future<void> _makePhoneCall() async {
+    final Uri phoneUri = Uri(scheme: 'tel', path: bookingPhoneNumber);
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    } else {
+      _showContactDialog();
+    }
+  }
+
+  Future<void> _sendEmail() async {
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: bookingEmail,
+      query: 'subject=Package Booking Inquiry',
+    );
+    if (await canLaunchUrl(emailUri)) {
+      await launchUrl(emailUri);
+    } else {
+      _showContactDialog();
+    }
+  }
+
+  Future<void> _openWhatsApp() async {
+    final Uri whatsappUri = Uri.parse(
+        'https://wa.me/$whatsappNumber?text=Hi, I would like to inquire about your travel packages.');
+    if (await canLaunchUrl(whatsappUri)) {
+      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+    } else {
+      _showContactDialog();
+    }
+  }
+
+  void _showContactDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Icon(
+                Icons.contact_phone,
+                color: AppColors.primaryOrange,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Contact Us',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Get in touch with us to book your perfect trip:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.mediumGray,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _buildContactOption(
+                icon: Icons.phone,
+                title: 'Call Us',
+                subtitle: bookingPhoneNumber,
+                onTap: () {
+                  Navigator.pop(context);
+                  _makePhoneCall();
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildContactOption(
+                icon: Icons.email,
+                title: 'Email Us',
+                subtitle: bookingEmail,
+                onTap: () {
+                  Navigator.pop(context);
+                  _sendEmail();
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildContactOption(
+                icon: Icons.chat,
+                title: 'WhatsApp',
+                subtitle: 'Chat with us instantly',
+                onTap: () {
+                  Navigator.pop(context);
+                  _openWhatsApp();
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Close',
+                style: TextStyle(color: AppColors.mediumGray),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildContactOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.lightOrange,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                color: AppColors.primaryOrange,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkGray,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.mediumGray,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: AppColors.mediumGray,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showBookingDialog(String packageName, String price) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Icon(
+                Icons.card_travel,
+                color: AppColors.primaryOrange,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Book Package',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.lightOrange,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Package: $packageName',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.darkGray,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Price: $price /person',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryOrange,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Choose your preferred booking method:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.mediumGray,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildBookingOption(
+                icon: Icons.phone,
+                title: 'Call to Book',
+                subtitle: 'Speak with our travel experts',
+                onTap: () {
+                  Navigator.pop(context);
+                  _makePhoneCall();
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildBookingOption(
+                icon: Icons.chat,
+                title: 'WhatsApp Booking',
+                subtitle: 'Quick booking via WhatsApp',
+                onTap: () {
+                  Navigator.pop(context);
+                  _openWhatsAppWithPackage(packageName, price);
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildBookingOption(
+                icon: Icons.email,
+                title: 'Email Inquiry',
+                subtitle: 'Get detailed information',
+                onTap: () {
+                  Navigator.pop(context);
+                  _sendEmailWithPackage(packageName, price);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.mediumGray),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBookingOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.lightOrange,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: AppColors.primaryOrange,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkGray,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.mediumGray,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 12,
+              color: AppColors.mediumGray,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openWhatsAppWithPackage(
+      String packageName, String price) async {
+    final message =
+        'Hi! I\'m interested in booking the "$packageName" package ($price /person). Could you please provide more details and help me with the booking?';
+    final Uri whatsappUri = Uri.parse(
+        'https://wa.me/$whatsappNumber?text=${Uri.encodeComponent(message)}');
+    if (await canLaunchUrl(whatsappUri)) {
+      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+    } else {
+      _showContactDialog();
+    }
+  }
+
+  Future<void> _sendEmailWithPackage(String packageName, String price) async {
+    final subject = 'Booking Inquiry: $packageName';
+    final body =
+        'Dear Royal Dusk Tours,\n\nI am interested in booking the "$packageName" package ($price /person).\n\nPlease provide me with:\n- Detailed itinerary\n- Available dates\n- Booking process\n- Payment options\n\nThank you!\n\nBest regards';
+
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: bookingEmail,
+      query:
+          'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
+    );
+    if (await canLaunchUrl(emailUri)) {
+      await launchUrl(emailUri);
+    } else {
+      _showContactDialog();
+    }
+  }
+
+  void _performSearch() {
+    if (_searchQuery.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please enter a search term'),
+          backgroundColor: AppColors.primaryOrange,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+      return;
+    }
+
+    // Show search results dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text('Search Results for "$_searchQuery"'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('We found several packages matching your search:'),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.lightOrange,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Contact our travel experts to get personalized recommendations based on your search criteria.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.darkGray,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _showContactDialog();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryOrange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Contact Us'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -151,13 +598,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                           ],
                         ),
                       ),
-                      _buildHeaderIconButton(Icons.notifications_outlined, () {
-                        Navigator.pushNamed(context, '/comingSoon');
-                      }),
+                      _buildHeaderIconButton(Icons.phone, _makePhoneCall),
                       SizedBox(width: isTablet ? 12 : 8),
-                      _buildHeaderIconButton(Icons.shopping_cart_outlined, () {
-                        Navigator.pushNamed(context, '/comingSoon');
-                      }),
+                      _buildHeaderIconButton(Icons.chat, _openWhatsApp),
                     ],
                   ),
                 ],
@@ -373,17 +816,15 @@ class _DashboardScreenState extends State<DashboardScreen>
                   _searchQuery = value;
                 });
               },
+              onSubmitted: (value) {
+                _performSearch();
+              },
             ),
           ),
           Container(
             margin: EdgeInsets.all(isTablet ? 6 : 4),
             child: ElevatedButton(
-              onPressed: () {
-                // Handle search
-                {
-                  Navigator.pushNamed(context, '/comingSoon');
-                }
-              },
+              onPressed: _performSearch,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryOrange,
                 foregroundColor: Colors.white,
@@ -455,6 +896,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 available: true,
                 stat: '120+',
                 statLabel: 'Packages',
+                onTap: () => _showContactDialog(),
               ),
               _buildServiceCard(
                 icon: Icons.flight,
@@ -463,6 +905,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 available: false,
                 stat: 'Soon',
                 statLabel: 'Airlines',
+                onTap: () => _showContactDialog(),
               ),
               _buildServiceCard(
                 icon: Icons.hotel,
@@ -471,6 +914,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 available: false,
                 stat: 'Soon',
                 statLabel: 'Properties',
+                onTap: () => _showContactDialog(),
               ),
               _buildServiceCard(
                 icon: Icons.tour,
@@ -479,6 +923,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 available: false,
                 stat: 'Soon',
                 statLabel: 'Experiences',
+                onTap: () => _showContactDialog(),
               ),
             ],
           ),
@@ -494,121 +939,128 @@ class _DashboardScreenState extends State<DashboardScreen>
     required bool available,
     required String stat,
     required String statLabel,
+    required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: available ? Colors.white : Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: available
-            ? [
-                BoxShadow(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                )
-              ]
-            : null,
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(isTablet ? 20 : 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: isTablet ? 50 : 40,
-                  height: isTablet ? 50 : 40,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: available
-                          ? [AppColors.primaryOrange, AppColors.secondaryOrange]
-                          : [AppColors.mediumGray, AppColors.mediumGray],
-                    ),
-                    borderRadius: BorderRadius.circular(isTablet ? 14 : 10),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: Colors.white,
-                    size: isTablet ? 26 : 20,
-                  ),
-                ),
-                if (!available)
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: available ? Colors.white : Colors.white.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: available
+              ? [
+                  BoxShadow(
+                    color: AppColors.primaryOrange.withValues(alpha: 0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : null,
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(isTablet ? 20 : 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: isTablet ? 8 : 6,
-                        vertical: isTablet ? 3 : 2),
+                    width: isTablet ? 50 : 40,
+                    height: isTablet ? 50 : 40,
                     decoration: BoxDecoration(
-                      color: Colors.orange,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      'Soon',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: isTablet ? 11 : 9,
-                        fontWeight: FontWeight.w600,
+                      gradient: LinearGradient(
+                        colors: available
+                            ? [
+                                AppColors.primaryOrange,
+                                AppColors.secondaryOrange
+                              ]
+                            : [AppColors.mediumGray, AppColors.mediumGray],
                       ),
+                      borderRadius: BorderRadius.circular(isTablet ? 14 : 10),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: Colors.white,
+                      size: isTablet ? 26 : 20,
                     ),
                   ),
-              ],
-            ),
-            SizedBox(height: isTablet ? 12 : 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: isTablet ? 18 : 14,
-                fontWeight: FontWeight.w600,
-                color: available ? AppColors.darkGray : AppColors.mediumGray,
+                  if (!available)
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: isTablet ? 8 : 6,
+                          vertical: isTablet ? 3 : 2),
+                      decoration: BoxDecoration(
+                        color: Colors.orange,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        'Soon',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: isTablet ? 11 : 9,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ),
-            SizedBox(height: isTablet ? 4 : 2),
-            Expanded(
-              child: Text(
-                description,
+              SizedBox(height: isTablet ? 12 : 8),
+              Text(
+                title,
                 style: TextStyle(
-                  color: AppColors.mediumGray,
-                  fontSize: isTablet ? 14 : 11,
-                  height: 1.2,
+                  fontSize: isTablet ? 18 : 14,
+                  fontWeight: FontWeight.w600,
+                  color: available ? AppColors.darkGray : AppColors.mediumGray,
                 ),
-                maxLines: isTablet ? 3 : 2,
-                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            SizedBox(height: isTablet ? 12 : 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      stat,
-                      style: TextStyle(
-                        fontSize: isTablet ? 18 : 14,
-                        fontWeight: FontWeight.bold,
-                        color: available
-                            ? AppColors.primaryOrange
-                            : AppColors.mediumGray,
-                      ),
-                    ),
-                    Text(
-                      statLabel,
-                      style: TextStyle(
-                        fontSize: isTablet ? 12 : 9,
-                        color: AppColors.mediumGray,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+              SizedBox(height: isTablet ? 4 : 2),
+              Expanded(
+                child: Text(
+                  description,
+                  style: TextStyle(
+                    color: AppColors.mediumGray,
+                    fontSize: isTablet ? 14 : 11,
+                    height: 1.2,
+                  ),
+                  maxLines: isTablet ? 3 : 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-          ],
+              ),
+              SizedBox(height: isTablet ? 12 : 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        stat,
+                        style: TextStyle(
+                          fontSize: isTablet ? 18 : 14,
+                          fontWeight: FontWeight.bold,
+                          color: available
+                              ? AppColors.primaryOrange
+                              : AppColors.mediumGray,
+                        ),
+                      ),
+                      Text(
+                        statLabel,
+                        style: TextStyle(
+                          fontSize: isTablet ? 12 : 9,
+                          color: AppColors.mediumGray,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -659,19 +1111,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                   color: AppColors.darkGray,
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/comingSoon');
-                },
-                child: Text(
-                  'View All',
-                  style: TextStyle(
-                    color: AppColors.primaryOrange,
-                    fontWeight: FontWeight.w500,
-                    fontSize: isTablet ? 16 : 14,
-                  ),
-                ),
-              ),
+              // TextButton(
+              //   onPressed: _showContactDialog,
+              //   child: Text(
+              //     'View All',
+              //     style: TextStyle(
+              //       color: AppColors.primaryOrange,
+              //       fontWeight: FontWeight.w500,
+              //       fontSize: isTablet ? 16 : 14,
+              //     ),
+              //   ),
+              // ),
             ],
           ),
           SizedBox(height: isTablet ? 20 : 16),
@@ -682,133 +1132,139 @@ class _DashboardScreenState extends State<DashboardScreen>
               itemCount: destinations.length,
               itemBuilder: (context, index) {
                 final destination = destinations[index];
-                return Container(
-                  width: isTablet ? 180 : 140,
-                  margin: EdgeInsets.only(right: isTablet ? 20 : 16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
-                    child: Stack(
-                      children: [
-                        // Background Image
-                        Positioned.fill(
-                          child: Image.network(
-                            destination['image'] as String,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) {
-                                return child;
-                              }
-                              return Container(
-                                color: Colors.grey[300],
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    value: loadingProgress.expectedTotalBytes !=
-                                            null
-                                        ? loadingProgress
-                                                .cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                        : null,
-                                    strokeWidth: 2,
-                                    color: AppColors.primaryOrange,
+                return GestureDetector(
+                  onTap: () => _showContactDialog(),
+                  child: Container(
+                    width: isTablet ? 180 : 140,
+                    margin: EdgeInsets.only(right: isTablet ? 20 : 16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+                      child: Stack(
+                        children: [
+                          // Background Image
+                          Positioned.fill(
+                            child: Image.network(
+                              destination['image'] as String,
+                              fit: BoxFit.cover,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                if (loadingProgress == null) {
+                                  return child;
+                                }
+                                return Container(
+                                  color: Colors.grey[300],
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      value:
+                                          loadingProgress.expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
+                                      strokeWidth: 2,
+                                      color: AppColors.primaryOrange,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[300],
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.error_outline,
-                                      color: Colors.grey[600],
-                                      size: isTablet ? 32 : 24,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Image not available',
-                                      style: TextStyle(
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey[300],
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.error_outline,
                                         color: Colors.grey[600],
-                                        fontSize: isTablet ? 12 : 10,
+                                        size: isTablet ? 32 : 24,
                                       ),
-                                      textAlign: TextAlign.center,
-                                    ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Image not available',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: isTablet ? 12 : 10,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          // Gradient Overlay
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    AppColors.darkGray.withValues(alpha: 0.7),
                                   ],
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                        // Gradient Overlay
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  AppColors.darkGray.withValues(alpha: 0.7),
-                                ],
                               ),
                             ),
                           ),
-                        ),
-                        // Text Content
-                        Positioned(
-                          bottom: isTablet ? 20 : 16,
-                          left: isTablet ? 20 : 16,
-                          right: isTablet ? 20 : 16,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                destination['name'] as String,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: isTablet ? 20 : 16,
-                                  fontWeight: FontWeight.w600,
-                                  shadows: [
-                                    Shadow(
-                                      offset: const Offset(0, 1),
-                                      blurRadius: 3,
-                                      color:
-                                          Colors.black.withValues(alpha: 0.5),
-                                    ),
-                                  ],
+                          // Text Content
+                          Positioned(
+                            bottom: isTablet ? 20 : 16,
+                            left: isTablet ? 20 : 16,
+                            right: isTablet ? 20 : 16,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  destination['name'] as String,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: isTablet ? 20 : 16,
+                                    fontWeight: FontWeight.w600,
+                                    shadows: [
+                                      Shadow(
+                                        offset: const Offset(0, 1),
+                                        blurRadius: 3,
+                                        color:
+                                            Colors.black.withValues(alpha: 0.5),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: isTablet ? 6 : 4),
-                              Text(
-                                destination['packages'] as String,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  fontSize: isTablet ? 14 : 12,
-                                  shadows: [
-                                    Shadow(
-                                      offset: const Offset(0, 1),
-                                      blurRadius: 3,
-                                      color:
-                                          Colors.black.withValues(alpha: 0.5),
-                                    ),
-                                  ],
+                                SizedBox(height: isTablet ? 6 : 4),
+                                Text(
+                                  destination['packages'] as String,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    fontSize: isTablet ? 14 : 12,
+                                    shadows: [
+                                      Shadow(
+                                        offset: const Offset(0, 1),
+                                        blurRadius: 3,
+                                        color:
+                                            Colors.black.withValues(alpha: 0.5),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -839,9 +1295,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/packages');
-                },
+                // onPressed: _showContactDialog,
+                onPressed: () => Navigator.pushNamed(context, '/packages'),
                 child: Text(
                   'View All',
                   style: TextStyle(
@@ -1170,7 +1625,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.pushNamed(context, '/comingSoon');
+                          _showBookingDialog(
+                            package['name'] as String,
+                            package['price'] as String,
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryOrange,
@@ -1186,7 +1644,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           minimumSize: Size(0, isTablet ? 36 : 28),
                         ),
                         child: Text(
-                          'Add to Cart',
+                          'Book Now',
                           style: TextStyle(
                             fontSize: isTablet ? 14 : 11,
                             fontWeight: FontWeight.w500,
@@ -1229,34 +1687,38 @@ class _DashboardScreenState extends State<DashboardScreen>
                         title: '24/7 Support',
                         subtitle: 'Get help anytime',
                         color: AppColors.primaryOrange,
+                        onTap: _showContactDialog,
                       ),
                     ),
                     const SizedBox(width: 20),
                     Expanded(
                       child: _buildQuickActionCard(
-                        icon: Icons.favorite_outline,
-                        title: 'Wishlist',
-                        subtitle: 'Saved packages',
-                        color: Colors.red,
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: _buildQuickActionCard(
-                        icon: Icons.local_offer,
-                        title: 'Special Offers',
-                        subtitle: 'Limited time deals',
+                        icon: Icons.phone,
+                        title: 'Call Us',
+                        subtitle: bookingPhoneNumber,
                         color: Colors.green,
+                        onTap: _makePhoneCall,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: _buildQuickActionCard(
+                        icon: Icons.chat,
+                        title: 'WhatsApp',
+                        subtitle: 'Chat instantly',
+                        color: Colors.green,
+                        onTap: _openWhatsApp,
                       ),
                     ),
                     if (screenWidth >= 1200) ...[
                       const SizedBox(width: 20),
                       Expanded(
                         child: _buildQuickActionCard(
-                          icon: Icons.map,
-                          title: 'Travel Guide',
-                          subtitle: 'Destination tips',
+                          icon: Icons.email,
+                          title: 'Email Us',
+                          subtitle: 'Send inquiry',
                           color: Colors.blue,
+                          onTap: _sendEmail,
                         ),
                       ),
                     ],
@@ -1272,15 +1734,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                             title: '24/7 Support',
                             subtitle: 'Get help anytime',
                             color: AppColors.primaryOrange,
+                            onTap: _showContactDialog,
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildQuickActionCard(
-                            icon: Icons.favorite_outline,
-                            title: 'Wishlist',
-                            subtitle: 'Saved packages',
-                            color: Colors.red,
+                            icon: Icons.phone,
+                            title: 'Call Us',
+                            subtitle: bookingPhoneNumber,
+                            color: Colors.green,
+                            onTap: _makePhoneCall,
                           ),
                         ),
                       ],
@@ -1290,19 +1754,21 @@ class _DashboardScreenState extends State<DashboardScreen>
                       children: [
                         Expanded(
                           child: _buildQuickActionCard(
-                            icon: Icons.local_offer,
-                            title: 'Special Offers',
-                            subtitle: 'Limited time deals',
+                            icon: Icons.chat,
+                            title: 'WhatsApp',
+                            subtitle: 'Chat instantly',
                             color: Colors.green,
+                            onTap: _openWhatsApp,
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildQuickActionCard(
-                            icon: Icons.map,
-                            title: 'Travel Guide',
-                            subtitle: 'Destination tips',
+                            icon: Icons.email,
+                            title: 'Email Us',
+                            subtitle: 'Send inquiry',
                             color: Colors.blue,
+                            onTap: _sendEmail,
                           ),
                         ),
                       ],
@@ -1319,55 +1785,61 @@ class _DashboardScreenState extends State<DashboardScreen>
     required String title,
     required String subtitle,
     required Color color,
+    required VoidCallback onTap,
   }) {
-    return Container(
-      padding: EdgeInsets.all(isTablet ? 20 : 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: isTablet ? 50 : 40,
-            height: isTablet ? 50 : 40,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(isTablet ? 14 : 10),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(isTablet ? 20 : 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: isTablet ? 26 : 20,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: isTablet ? 50 : 40,
+              height: isTablet ? 50 : 40,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(isTablet ? 14 : 10),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: isTablet ? 26 : 20,
+              ),
             ),
-          ),
-          SizedBox(height: isTablet ? 16 : 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: isTablet ? 16 : 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.darkGray,
+            SizedBox(height: isTablet ? 16 : 12),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: isTablet ? 16 : 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.darkGray,
+              ),
             ),
-          ),
-          SizedBox(height: isTablet ? 6 : 4),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: isTablet ? 14 : 12,
-              color: AppColors.mediumGray,
+            SizedBox(height: isTablet ? 6 : 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: isTablet ? 14 : 12,
+                color: AppColors.mediumGray,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
