@@ -151,11 +151,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                           ],
                         ),
                       ),
-                      _buildHeaderIconButton(
-                          Icons.notifications_outlined, () {Navigator.pushNamed(context, '/comingSoon');}),
+                      _buildHeaderIconButton(Icons.notifications_outlined, () {
+                        Navigator.pushNamed(context, '/comingSoon');
+                      }),
                       SizedBox(width: isTablet ? 12 : 8),
-                      _buildHeaderIconButton(
-                          Icons.shopping_cart_outlined, () {Navigator.pushNamed(context, '/comingSoon');}),
+                      _buildHeaderIconButton(Icons.shopping_cart_outlined, () {
+                        Navigator.pushNamed(context, '/comingSoon');
+                      }),
                     ],
                   ),
                 ],
@@ -378,7 +380,9 @@ class _DashboardScreenState extends State<DashboardScreen>
             child: ElevatedButton(
               onPressed: () {
                 // Handle search
-                 {Navigator.pushNamed(context, '/comingSoon');}
+                {
+                  Navigator.pushNamed(context, '/comingSoon');
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryOrange,
@@ -656,7 +660,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
               ),
               TextButton(
-                onPressed: () {Navigator.pushNamed(context, '/comingSoon');},
+                onPressed: () {
+                  Navigator.pushNamed(context, '/comingSoon');
+                },
                 child: Text(
                   'View All',
                   style: TextStyle(
@@ -1163,7 +1169,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ],
                       ),
                       ElevatedButton(
-                        onPressed: () {Navigator.pushNamed(context, '/comingSoon');},
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/comingSoon');
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryOrange,
                           foregroundColor: Colors.white,
