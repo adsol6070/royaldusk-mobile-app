@@ -53,12 +53,15 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCFW3KLQQUJIaNznXQ-6mhcIASRlZHOTMw',
-    appId: '1:874114819410:ios:6502ae69f69e085924468b',
+    appId: '1:874114819410:ios:fd7e972fd704b1c124468b',
     messagingSenderId: '874114819410',
     projectId: 'travel-app-93f39',
     storageBucket: 'travel-app-93f39.firebasestorage.app',
-    iosClientId: '874114819410-md66ouov3e0ifbqvstjrnfbs2p0hn7ll.apps.googleusercontent.com',
-    iosBundleId: 'com.example.royalduskMobileApp',
+    androidClientId:
+        '874114819410-01qabi4d1fu5bsoec68i2hi0gaqjg5cc.apps.googleusercontent.com',
+    iosClientId:
+        '874114819410-s7r5cspv61pvkpknoe4agvuqm8u2811e.apps.googleusercontent.com',
+    iosBundleId: 'com.royaldusk.app.ios',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -67,7 +70,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '874114819410',
     projectId: 'travel-app-93f39',
     storageBucket: 'travel-app-93f39.firebasestorage.app',
-    iosClientId: '874114819410-md66ouov3e0ifbqvstjrnfbs2p0hn7ll.apps.googleusercontent.com',
+    iosClientId:
+        '874114819410-md66ouov3e0ifbqvstjrnfbs2p0hn7ll.apps.googleusercontent.com',
     iosBundleId: 'com.example.royalduskMobileApp',
   );
 

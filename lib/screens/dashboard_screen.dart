@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:royaldusk_mobile_app/constants/app_colors.dart';
-import 'package:royaldusk_mobile_app/services/auth_service.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final bool showAppBar;
+  const DashboardScreen({super.key, this.showAppBar = true});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -14,7 +14,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin {
   late PageController _pageController;
   late AnimationController _animationController;
-  int _currentIndex = 0;
   int _selectedServiceIndex = 0;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
@@ -86,7 +85,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -154,10 +152,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ),
                       ),
                       _buildHeaderIconButton(
-                          Icons.notifications_outlined, () {}),
+                          Icons.notifications_outlined, () {Navigator.pushNamed(context, '/comingSoon');}),
                       SizedBox(width: isTablet ? 12 : 8),
                       _buildHeaderIconButton(
-                          Icons.shopping_cart_outlined, _navigateToCart),
+                          Icons.shopping_cart_outlined, () {Navigator.pushNamed(context, '/comingSoon');}),
                     ],
                   ),
                 ],
@@ -380,6 +378,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             child: ElevatedButton(
               onPressed: () {
                 // Handle search
+                 {Navigator.pushNamed(context, '/comingSoon');}
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryOrange,
@@ -616,22 +615,26 @@ class _DashboardScreenState extends State<DashboardScreen>
       {
         'name': 'Manali',
         'packages': '15 packages',
-        'image': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4',
+        'image':
+            'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
       },
       {
         'name': 'Goa',
         'packages': '12 packages',
-        'image': 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2',
+        'image':
+            'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
       },
       {
         'name': 'Kerala',
         'packages': '18 packages',
-        'image': 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944',
+        'image':
+            'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
       },
       {
         'name': 'Rajasthan',
         'packages': '22 packages',
-        'image': 'https://images.unsplash.com/photo-1477587458883-47145ed94245',
+        'image':
+            'https://images.unsplash.com/photo-1477587458883-47145ed94245?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
       },
     ];
 
@@ -653,7 +656,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {Navigator.pushNamed(context, '/comingSoon');},
                 child: Text(
                   'View All',
                   style: TextStyle(
@@ -690,18 +693,73 @@ class _DashboardScreenState extends State<DashboardScreen>
                     borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
                     child: Stack(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                AppColors.primaryOrange.withValues(alpha: 0.2),
-                                AppColors.darkGray.withValues(alpha: 0.8),
-                              ],
+                        // Background Image
+                        Positioned.fill(
+                          child: Image.network(
+                            destination['image'] as String,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) {
+                                return child;
+                              }
+                              return Container(
+                                color: Colors.grey[300],
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                    strokeWidth: 2,
+                                    color: AppColors.primaryOrange,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[300],
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.error_outline,
+                                      color: Colors.grey[600],
+                                      size: isTablet ? 32 : 24,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Image not available',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: isTablet ? 12 : 10,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        // Gradient Overlay
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  AppColors.darkGray.withValues(alpha: 0.7),
+                                ],
+                              ),
                             ),
                           ),
                         ),
+                        // Text Content
                         Positioned(
                           bottom: isTablet ? 20 : 16,
                           left: isTablet ? 20 : 16,
@@ -715,6 +773,14 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   color: Colors.white,
                                   fontSize: isTablet ? 20 : 16,
                                   fontWeight: FontWeight.w600,
+                                  shadows: [
+                                    Shadow(
+                                      offset: const Offset(0, 1),
+                                      blurRadius: 3,
+                                      color:
+                                          Colors.black.withValues(alpha: 0.5),
+                                    ),
+                                  ],
                                 ),
                               ),
                               SizedBox(height: isTablet ? 6 : 4),
@@ -723,6 +789,14 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.9),
                                   fontSize: isTablet ? 14 : 12,
+                                  shadows: [
+                                    Shadow(
+                                      offset: const Offset(0, 1),
+                                      blurRadius: 3,
+                                      color:
+                                          Colors.black.withValues(alpha: 0.5),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -797,6 +871,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         'duration': '5 Days',
         'price': '₹15,999',
         'rating': '4.5',
+        'image':
+            'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
       },
       {
         'name': 'Goa Beach Paradise',
@@ -804,6 +880,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         'duration': '4 Days',
         'price': '₹12,999',
         'rating': '4.8',
+        'image':
+            'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
       },
       {
         'name': 'Kerala Backwaters',
@@ -811,6 +889,26 @@ class _DashboardScreenState extends State<DashboardScreen>
         'duration': '6 Days',
         'price': '₹18,999',
         'rating': '4.6',
+        'image':
+            'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
+      },
+      {
+        'name': 'Rajasthan Heritage Tour',
+        'location': 'Rajasthan',
+        'duration': '7 Days',
+        'price': '₹22,999',
+        'rating': '4.7',
+        'image':
+            'https://images.unsplash.com/photo-1477587458883-47145ed94245?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
+      },
+      {
+        'name': 'Himachal Hill Station',
+        'location': 'Himachal Pradesh',
+        'duration': '5 Days',
+        'price': '₹16,999',
+        'rating': '4.4',
+        'image':
+            'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
       },
     ];
 
@@ -837,16 +935,71 @@ class _DashboardScreenState extends State<DashboardScreen>
         children: [
           Stack(
             children: [
+              // Background Image
               Container(
                 height: isTablet ? 160 : 120,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(isTablet ? 20 : 16),
                     topRight: Radius.circular(isTablet ? 20 : 16),
                   ),
                 ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(isTablet ? 20 : 16),
+                    topRight: Radius.circular(isTablet ? 20 : 16),
+                  ),
+                  child: Image.network(
+                    package['image'] as String,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      }
+                      return Container(
+                        color: AppColors.primaryOrange.withValues(alpha: 0.2),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                            strokeWidth: 2,
+                            color: AppColors.primaryOrange,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: AppColors.primaryOrange.withValues(alpha: 0.2),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.image_not_supported_outlined,
+                              color: AppColors.primaryOrange,
+                              size: isTablet ? 32 : 24,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Image not available',
+                              style: TextStyle(
+                                color: AppColors.primaryOrange,
+                                fontSize: isTablet ? 12 : 10,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
+              // Available Badge
               Positioned(
                 top: isTablet ? 12 : 8,
                 right: isTablet ? 12 : 8,
@@ -856,6 +1009,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Text(
                     'Available',
@@ -867,6 +1027,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                 ),
               ),
+              // Location Badge
               Positioned(
                 bottom: isTablet ? 12 : 8,
                 left: isTablet ? 12 : 8,
@@ -892,6 +1053,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                           color: Colors.white,
                           fontSize: isTablet ? 12 : 9,
                           fontWeight: FontWeight.w500,
+                          shadows: [
+                            Shadow(
+                              offset: const Offset(0, 1),
+                              blurRadius: 2,
+                              color: Colors.black.withValues(alpha: 0.5),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -995,7 +1163,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ],
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {Navigator.pushNamed(context, '/comingSoon');},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryOrange,
                           foregroundColor: Colors.white,
@@ -1192,103 +1360,6 @@ class _DashboardScreenState extends State<DashboardScreen>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNavigationBar() {
-    // On tablets, we can show a more compact bottom navigation
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(isTablet ? 24 : 20),
-          topRight: Radius.circular(isTablet ? 24 : 20),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(isTablet ? 24 : 20),
-          topRight: Radius.circular(isTablet ? 24 : 20),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-
-            switch (index) {
-              case 0:
-                Navigator.pushNamed(context, '/home');
-                break;
-              case 1:
-                Navigator.pushNamed(context, '/explore');
-                break;
-              case 2:
-                Navigator.pushNamed(context, '/bookings');
-                break;
-              case 3:
-                Navigator.pushNamed(context, '/wishlist');
-                break;
-              case 4:
-                Navigator.pushNamed(context, '/profile');
-                break;
-            }
-          },
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: AppColors.primaryOrange,
-          unselectedItemColor: AppColors.mediumGray,
-          selectedLabelStyle: TextStyle(
-            fontSize: isTablet ? 14 : 12,
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: TextStyle(
-            fontSize: isTablet ? 14 : 12,
-            fontWeight: FontWeight.w500,
-          ),
-          elevation: 0,
-          iconSize: isTablet ? 28 : 24,
-          items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.search_outlined),
-              activeIcon: Icon(Icons.search),
-              label: 'Explore',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.confirmation_number_outlined),
-              activeIcon: Icon(Icons.confirmation_number),
-              label: 'Bookings',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_outline),
-              activeIcon: Icon(Icons.favorite),
-              label: 'Wishlist',
-            ),
-            BottomNavigationBarItem(
-              icon: AuthService.isSignedIn
-                  ? const Icon(Icons.person_outline)
-                  : const Icon(Icons.login),
-              activeIcon: AuthService.isSignedIn
-                  ? const Icon(Icons.person)
-                  : const Icon(Icons.login),
-              label: AuthService.isSignedIn ? 'Profile' : 'Sign In',
-            ),
-          ],
-        ),
       ),
     );
   }

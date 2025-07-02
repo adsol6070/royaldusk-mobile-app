@@ -314,8 +314,8 @@ class _BookingsScreenState extends State<BookingsScreen>
               child: Column(
                 children: [
                   Container(
-                    width: 100,
-                    height: 100,
+                    width: 80,
+                    height: 80,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -323,11 +323,11 @@ class _BookingsScreenState extends State<BookingsScreen>
                           AppColors.lightOrange
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(50),
+                      borderRadius: BorderRadius.circular(40),
                     ),
                     child: const Icon(
                       Icons.flight_takeoff,
-                      size: 50,
+                      size: 40,
                       color: AppColors.primaryOrange,
                     ),
                   ),

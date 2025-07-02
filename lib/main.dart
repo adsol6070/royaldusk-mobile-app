@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:royaldusk_mobile_app/screens/booking_screen.dart';
 import 'package:royaldusk_mobile_app/screens/cart_screen.dart';
-import 'package:royaldusk_mobile_app/screens/dashboard_screen.dart';
 import 'package:royaldusk_mobile_app/screens/package_list_screen.dart';
-import 'package:royaldusk_mobile_app/screens/profile_screen.dart';
-import 'package:royaldusk_mobile_app/screens/wish_list_screen.dart';
+import 'package:royaldusk_mobile_app/screens/main_navigation_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:royaldusk_mobile_app/screens/profile_screen.dart';
+import 'package:royaldusk_mobile_app/screens/comming_screen.dart';
 import 'package:royaldusk_mobile_app/services/auth_service.dart';
 import 'firebase_options.dart';
 
@@ -33,12 +32,11 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const DashboardScreen(),
+        '/': (context) => const MainNavigationScreen(),
         '/cart': (context) => const CartScreen(),
         '/packages': (context) => const PackageListScreen(),
-        '/bookings': (context) => const BookingsScreen(),
-        '/wishlist': (context) => const WishlistScreen(),
-        '/profile': (context) => const ProfileScreen(),
+         '/profile': (context) => const ProfileScreen(),
+         '/comingSoon': (context) => const ComingSoonScreen(),
       },
       debugShowCheckedModeBanner: false,
     );

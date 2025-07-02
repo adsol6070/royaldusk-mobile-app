@@ -914,7 +914,7 @@ class _PackageListScreenState extends State<PackageListScreen>
                         ],
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {Navigator.pushNamed(context, '/comingSoon');},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryOrange,
                           foregroundColor: Colors.white,

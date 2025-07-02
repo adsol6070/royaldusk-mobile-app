@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:royaldusk_mobile_app/constants/app_colors.dart';
 import 'package:royaldusk_mobile_app/models/user.dart';
 import 'package:royaldusk_mobile_app/services/auth_service.dart';
+import 'package:royaldusk_mobile_app/widgets/auth/phone_auth_dialog.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -45,6 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: AppColors.mediumGray),
                 onPressed: () {
                   // Navigate to settings
+                  Navigator.pushNamed(context, '/comingSoon');
                 },
               ),
               const SizedBox(width: 8),
@@ -469,7 +472,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icons.confirmation_number_outlined,
                 label: 'My Bookings',
                 count: '3',
-                onTap: () {},
+                onTap: () {
+                  Navigator.pushNamed(context, '/comingSoon');
+                },
               ),
             ),
             Container(
@@ -482,7 +487,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icons.favorite_outline,
                 label: 'Wishlist',
                 count: '12',
-                onTap: () {},
+                onTap: () {
+                  Navigator.pushNamed(context, '/comingSoon');
+                },
               ),
             ),
             Container(
@@ -495,7 +502,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icons.reviews_outlined,
                 label: 'Reviews',
                 count: '5',
-                onTap: () {},
+                onTap: () {
+                  Navigator.pushNamed(context, '/comingSoon');
+                },
               ),
             ),
           ],
@@ -562,35 +571,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.person_outline,
             title: 'Personal Information',
             subtitle: 'Update your details',
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/comingSoon');
+            },
           ),
           _buildMenuDivider(),
           _buildMenuItem(
             icon: Icons.payment_outlined,
             title: 'Payment Methods',
             subtitle: 'Manage cards and payment options',
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/comingSoon');
+            },
           ),
           _buildMenuDivider(),
           _buildMenuItem(
             icon: Icons.notifications_outlined,
             title: 'Notifications',
             subtitle: 'Manage your preferences',
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/comingSoon');
+            },
           ),
           _buildMenuDivider(),
           _buildMenuItem(
             icon: Icons.security_outlined,
             title: 'Privacy & Security',
             subtitle: 'Password and security settings',
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/comingSoon');
+            },
           ),
           _buildMenuDivider(),
           _buildMenuItem(
             icon: Icons.language_outlined,
             title: 'Language & Region',
             subtitle: 'English (US), AED',
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/comingSoon');
+            },
           ),
         ],
       ),
@@ -687,28 +706,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.headset_mic_outlined,
             title: 'Customer Support',
             subtitle: 'Get help with your bookings',
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/comingSoon');
+            },
           ),
           _buildMenuDivider(),
           _buildMenuItem(
             icon: Icons.info_outline,
             title: 'About Royal Dusk Tours',
             subtitle: 'Learn more about our company',
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/comingSoon');
+            },
           ),
           _buildMenuDivider(),
           _buildMenuItem(
             icon: Icons.article_outlined,
             title: 'Terms & Conditions',
             subtitle: 'Read our terms of service',
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/comingSoon');
+            },
           ),
           _buildMenuDivider(),
           _buildMenuItem(
             icon: Icons.privacy_tip_outlined,
             title: 'Privacy Policy',
             subtitle: 'How we protect your data',
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/comingSoon');
+            },
           ),
         ],
       ),
@@ -735,21 +762,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.headset_mic_outlined,
             title: 'Customer Support',
             subtitle: 'Get help 24/7',
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/comingSoon');
+            },
           ),
           _buildMenuDivider(),
           _buildMenuItem(
             icon: Icons.share_outlined,
             title: 'Invite Friends',
             subtitle: 'Share Royal Dusk Tours',
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/comingSoon');
+            },
           ),
           _buildMenuDivider(),
           _buildMenuItem(
             icon: Icons.star_outline,
             title: 'Rate Our App',
             subtitle: 'Help us improve',
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/comingSoon');
+            },
+          ),
+          _buildMenuDivider(),
+          _buildMenuItem(
+            icon: Icons.delete_outline,
+            title: 'Delete Account',
+            subtitle: 'Permanently delete your account and data',
+            iconColor: Colors.red,
+            onTap: () => _showDeleteAccountDialog(),
           ),
           _buildMenuDivider(),
           _buildMenuItem(
@@ -812,7 +853,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _signInWithApple() async {
     try {
-      // Show loading indicator
       _showLoadingDialog('Signing in with Apple...');
 
       final user = await AuthService.signInWithApple();
@@ -821,17 +861,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       Navigator.pop(context); // Close loading dialog
 
       if (user != null) {
-        setState(() {
-          // UI will automatically update due to AuthService state change
-        });
+        setState(() {}); // Optional: triggers UI update
         _showSuccessSnackBar('Successfully signed in with Apple!');
       } else {
-        // User cancelled the sign-in
-        _showErrorSnackBar('Apple sign-in was cancelled');
+        _showErrorSnackBar('Apple sign-in was cancelled by the user.');
       }
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context); // Close loading dialog
+
+      if (e is SignInWithAppleAuthorizationException) {
+        if (e.code == AuthorizationErrorCode.canceled ||
+            e.code == AuthorizationErrorCode.unknown) {
+          _showErrorSnackBar('Apple sign-in was cancelled by the user.');
+          return;
+        }
+      }
+
       _showErrorSnackBar('Failed to sign in with Apple: ${e.toString()}');
     }
   }
@@ -935,6 +981,285 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // ==================== ACCOUNT DELETION ====================
+
+  void _showDeleteAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.red,
+              size: 24,
+            ),
+            SizedBox(width: 8),
+            Text(
+              'Delete Account',
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'This action cannot be undone. Deleting your account will:',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildDeleteAccountItem(
+              icon: Icons.delete_forever,
+              text: 'Permanently delete all your personal data',
+            ),
+            _buildDeleteAccountItem(
+              icon: Icons.cancel,
+              text: 'Cancel all upcoming bookings',
+            ),
+            _buildDeleteAccountItem(
+              icon: Icons.history,
+              text: 'Remove your booking history',
+            ),
+            _buildDeleteAccountItem(
+              icon: Icons.favorite_border,
+              text: 'Delete your wishlists and reviews',
+            ),
+            _buildDeleteAccountItem(
+              icon: Icons.login,
+              text: 'Revoke access to your account',
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Colors.red.withValues(alpha: 0.3),
+                ),
+              ),
+              child: const Text(
+                '⚠️ This action is permanent and cannot be reversed. All your data will be permanently deleted from our servers.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.red,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                color: AppColors.mediumGray,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _showDeleteAccountConfirmationDialog();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeleteAccountItem({
+    required IconData icon,
+    required String text,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: Colors.red,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.darkGray,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountConfirmationDialog() {
+    final TextEditingController confirmationController =
+        TextEditingController();
+    bool isDeleteEnabled = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text(
+            'Final Confirmation',
+            style: TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'To confirm account deletion, please type "DELETE" in the field below:',
+                style: TextStyle(
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: confirmationController,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  hintText: 'Type DELETE here',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Colors.red),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Colors.red, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    isDeleteEnabled = value.trim().toUpperCase() == 'DELETE';
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.amber.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      color: Colors.amber,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Account deletion may take up to 30 days to complete. During this time, your account will be deactivated but data deletion will be processing.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.amber[800],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  color: AppColors.mediumGray,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: isDeleteEnabled
+                  ? () async {
+                      Navigator.pop(context);
+                      await _deleteAccount();
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDeleteEnabled ? Colors.red : Colors.grey,
+                foregroundColor: Colors.white,
+                elevation: 0,
+              ),
+              child: const Text('Delete Account'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteAccount() async {
+    try {
+      _showLoadingDialog('Deleting your account...');
+
+      // Call the delete account method from AuthService
+      await AuthService.deleteAccount();
+
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading dialog
+
+      // Show success message and sign out
+      _showSuccessSnackBar(
+          'Account deletion initiated successfully. You will be signed out.');
+
+      // Small delay before signing out to show the success message
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (!mounted) return;
+
+      setState(() {
+        // UI will automatically update due to AuthService state change
+      });
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading dialog
+      _showErrorSnackBar('Failed to delete account: ${e.toString()}');
+    }
+  }
+
   // Placeholder methods for email and phone sign-in (implement later)
   void _showEmailSignInDialog() {
     _showInfoDialog(
@@ -943,11 +1268,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showPhoneSignInDialog() {
-    _showInfoDialog(
-      'Phone Sign In',
-      'Phone number authentication will be implemented in a future update.\n\nFor now, please use Google, Apple, or Demo sign-in.',
+  void _showPhoneSignInDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const PhoneAuthDialog(),
     );
+
+    if (result == true && mounted) {
+      // Phone authentication was successful
+      setState(() {
+        // UI will automatically update due to AuthService state change
+      });
+    }
   }
 
   void _showInfoDialog(String title, String message) {
