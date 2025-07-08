@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:royaldusk_mobile_app/constants/app_colors.dart';
 import 'package:royaldusk_mobile_app/models/package.dart';
+import 'package:royaldusk_mobile_app/screens/package_detail_screen.dart';
+import 'package:royaldusk_mobile_app/services/api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PackageListScreen extends StatefulWidget {
@@ -15,28 +17,21 @@ class _PackageListScreenState extends State<PackageListScreen>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   final TextEditingController _searchController = TextEditingController();
+  final ApiService _apiService = ApiService();
 
   String _selectedCategory = 'All';
   String _selectedSortBy = 'Popular';
   String _searchQuery = '';
   bool _isListView = false;
+  bool _isLoading = true;
+  String? _errorMessage;
 
   // Contact information
   static const String bookingPhoneNumber = '+91-98761-49140';
   static const String bookingEmail = 'go@royaldusk.com';
-  static const String whatsappNumber =
-      '+919876149140'; // Without dashes for WhatsApp
+  static const String whatsappNumber = '+919876149140';
 
-  final List<String> categories = [
-    'All',
-    'Adventure',
-    'Beach',
-    'Mountain',
-    'Cultural',
-    'Luxury',
-    'Family'
-  ];
-
+  List<String> categories = ['All'];
   final List<String> sortOptions = [
     'Popular',
     'Price: Low to High',
@@ -45,124 +40,17 @@ class _PackageListScreenState extends State<PackageListScreen>
     'Rating'
   ];
 
-  // Sample package data - replace with your actual data
-  final List<Package> allPackages = [
-    Package(
-      id: '1',
-      name: 'Manali Adventure Tour',
-      location: 'Manali, Himachal Pradesh',
-      duration: '5 Days',
-      price: 15999,
-      originalPrice: 19999,
-      rating: 4.5,
-      reviewCount: 128,
-      imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4',
-      category: 'Adventure',
-      isPopular: true,
-      description:
-          'Experience thrilling adventures in the scenic mountains of Manali',
-      highlights: ['River Rafting', 'Paragliding', 'Trekking', 'Local Cuisine'],
-    ),
-    Package(
-      id: '2',
-      name: 'Goa Beach Paradise',
-      location: 'Goa',
-      duration: '4 Days',
-      price: 12999,
-      originalPrice: 15999,
-      rating: 4.8,
-      reviewCount: 89,
-      imageUrl: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2',
-      category: 'Beach',
-      isPopular: true,
-      description: 'Relax on pristine beaches and enjoy vibrant nightlife',
-      highlights: ['Beach Resort', 'Water Sports', 'Casino', 'Sunset Cruise'],
-    ),
-    Package(
-      id: '3',
-      name: 'Kerala Backwaters',
-      location: 'Kerala',
-      duration: '6 Days',
-      price: 18999,
-      originalPrice: 22999,
-      rating: 4.6,
-      reviewCount: 156,
-      imageUrl: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944',
-      category: 'Cultural',
-      isPopular: false,
-      description:
-          'Cruise through serene backwaters and experience local culture',
-      highlights: [
-        'Houseboat Stay',
-        'Ayurveda Spa',
-        'Spice Gardens',
-        'Traditional Dance'
-      ],
-    ),
-    Package(
-      id: '4',
-      name: 'Rajasthan Royal Heritage',
-      location: 'Rajasthan',
-      duration: '7 Days',
-      price: 24999,
-      originalPrice: 29999,
-      rating: 4.7,
-      reviewCount: 203,
-      imageUrl: 'https://images.unsplash.com/photo-1477587458883-47145ed94245',
-      category: 'Cultural',
-      isPopular: true,
-      description: 'Explore magnificent palaces and desert landscapes',
-      highlights: [
-        'Palace Hotels',
-        'Camel Safari',
-        'Folk Music',
-        'Desert Camping'
-      ],
-    ),
-    Package(
-      id: '5',
-      name: 'Shimla Hill Station',
-      location: 'Shimla, Himachal Pradesh',
-      duration: '3 Days',
-      price: 9999,
-      originalPrice: 12999,
-      rating: 4.3,
-      reviewCount: 67,
-      imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4',
-      category: 'Mountain',
-      isPopular: false,
-      description: 'Escape to the cool mountains and colonial charm',
-      highlights: ['Toy Train', 'Mall Road', 'Jakhu Temple', 'Pine Forests'],
-    ),
-    Package(
-      id: '6',
-      name: 'Luxury Mumbai Experience',
-      location: 'Mumbai, Maharashtra',
-      duration: '4 Days',
-      price: 35999,
-      originalPrice: 39999,
-      rating: 4.9,
-      reviewCount: 45,
-      imageUrl: 'https://images.unsplash.com/photo-1567157577867-05ccb1388e66',
-      category: 'Luxury',
-      isPopular: false,
-      description: 'Experience the financial capital in ultimate luxury',
-      highlights: [
-        '5-Star Hotels',
-        'Fine Dining',
-        'Bollywood Tour',
-        'Private Transfer'
-      ],
-    ),
-  ];
+  List<Package> allPackages = [];
 
   List<Package> get filteredPackages {
     List<Package> filtered = allPackages;
 
     // Filter by category
     if (_selectedCategory != 'All') {
-      filtered =
-          filtered.where((p) => p.category == _selectedCategory).toList();
+      filtered = filtered
+          .where((p) =>
+              p.category.name.toLowerCase() == _selectedCategory.toLowerCase())
+          .toList();
     }
 
     // Filter by search query
@@ -170,29 +58,15 @@ class _PackageListScreenState extends State<PackageListScreen>
       filtered = filtered
           .where((p) =>
               p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              p.location.toLowerCase().contains(_searchQuery.toLowerCase()))
+              p.location.name
+                  .toLowerCase()
+                  .contains(_searchQuery.toLowerCase()) ||
+              p.description.toLowerCase().contains(_searchQuery.toLowerCase()))
           .toList();
     }
 
-    // Sort packages
-    switch (_selectedSortBy) {
-      case 'Price: Low to High':
-        filtered.sort((a, b) => a.price.compareTo(b.price));
-        break;
-      case 'Price: High to Low':
-        filtered.sort((a, b) => b.price.compareTo(a.price));
-        break;
-      case 'Rating':
-        filtered.sort((a, b) => b.rating.compareTo(a.rating));
-        break;
-      case 'Duration':
-        filtered.sort((a, b) => a.duration.compareTo(b.duration));
-        break;
-      default: // Popular
-        filtered.sort((a, b) => b.isPopular ? 1 : -1);
-    }
-
-    return filtered;
+    // Sort packages using ApiService method
+    return _apiService.sortPackages(filtered, _selectedSortBy);
   }
 
   @override
@@ -202,7 +76,39 @@ class _PackageListScreenState extends State<PackageListScreen>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _animationController.forward();
+    _loadPackages();
+  }
+
+  Future<void> _loadPackages() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      // Load packages
+      final packages = await _apiService.getPackages();
+
+      // Load categories
+      final categoriesList = await _apiService.getCategories();
+
+      setState(() {
+        allPackages = packages;
+        categories = categoriesList;
+        _isLoading = false;
+      });
+
+      _animationController.forward();
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+      });
+    }
+  }
+
+  Future<void> _refreshPackages() async {
+    await _loadPackages();
   }
 
   @override
@@ -210,6 +116,14 @@ class _PackageListScreenState extends State<PackageListScreen>
     _animationController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _navigateToPackageDetail(Package package) {
+    Navigator.pushNamed(
+      context,
+      '/package-detail',
+      arguments: {'package': package},
+    );
   }
 
   // Contact methods
@@ -260,15 +174,15 @@ class _PackageListScreenState extends State<PackageListScreen>
         return AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
+          title: const Row(
             children: [
               Icon(
                 Icons.contact_phone,
                 color: AppColors.primaryOrange,
                 size: 24,
               ),
-              const SizedBox(width: 8),
-              const Text(
+              SizedBox(width: 8),
+              Text(
                 'Contact Us',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
@@ -401,15 +315,15 @@ class _PackageListScreenState extends State<PackageListScreen>
         return AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
+          title: const Row(
             children: [
               Icon(
                 Icons.card_travel,
                 color: AppColors.primaryOrange,
                 size: 24,
               ),
-              const SizedBox(width: 8),
-              const Text(
+              SizedBox(width: 8),
+              Text(
                 'Book Package',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
@@ -441,22 +355,22 @@ class _PackageListScreenState extends State<PackageListScreen>
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.location_on,
+                        const Icon(Icons.location_on,
                             size: 12, color: AppColors.mediumGray),
                         const SizedBox(width: 4),
                         Text(
-                          package.location,
+                          package.location.name,
                           style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.mediumGray,
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Icon(Icons.access_time,
+                        const Icon(Icons.access_time,
                             size: 12, color: AppColors.mediumGray),
                         const SizedBox(width: 4),
                         Text(
-                          package.duration,
+                          '${package.duration} days',
                           style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.mediumGray,
@@ -466,22 +380,13 @@ class _PackageListScreenState extends State<PackageListScreen>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'AED ${package.price} /person',
+                      '${package.currency} ${package.price} /person',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.primaryOrange,
                       ),
                     ),
-                    if (package.originalPrice > package.price)
-                      Text(
-                        'Original: AED ${package.originalPrice}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.mediumGray,
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -609,13 +514,97 @@ class _PackageListScreenState extends State<PackageListScreen>
     return Scaffold(
       backgroundColor: AppColors.lightGray,
       appBar: _buildAppBar(),
-      body: Column(
+      body: _isLoading
+          ? _buildLoadingState()
+          : _errorMessage != null
+              ? _buildErrorState()
+              : Column(
+                  children: [
+                    _buildSearchAndFilters(),
+                    Expanded(
+                      child: _buildPackagesList(),
+                    ),
+                  ],
+                ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildSearchAndFilters(),
-          Expanded(
-            child: _buildPackagesList(),
+          CircularProgressIndicator(
+            color: AppColors.primaryOrange,
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Loading packages...',
+            style: TextStyle(
+              color: AppColors.mediumGray,
+              fontSize: 16,
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.lightOrange,
+                borderRadius: BorderRadius.circular(40),
+              ),
+              child: const Icon(
+                Icons.error_outline,
+                size: 40,
+                color: AppColors.primaryOrange,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Unable to load packages',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: AppColors.darkGray,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage ?? 'An unexpected error occurred',
+              style: const TextStyle(
+                color: AppColors.mediumGray,
+                fontSize: 14,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _refreshPackages,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryOrange,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -640,14 +629,15 @@ class _PackageListScreenState extends State<PackageListScreen>
               color: AppColors.darkGray,
             ),
           ),
-          Text(
-            '${filteredPackages.length} packages available',
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.mediumGray,
-              fontWeight: FontWeight.w400,
+          if (!_isLoading)
+            Text(
+              '${filteredPackages.length} packages available',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.mediumGray,
+                fontWeight: FontWeight.w400,
+              ),
             ),
-          ),
         ],
       ),
       centerTitle: true,
@@ -810,7 +800,11 @@ class _PackageListScreenState extends State<PackageListScreen>
       builder: (context, child) {
         return FadeTransition(
           opacity: _animationController,
-          child: _isListView ? _buildListView() : _buildGridView(),
+          child: RefreshIndicator(
+            onRefresh: _refreshPackages,
+            color: AppColors.primaryOrange,
+            child: _isListView ? _buildListView() : _buildGridView(),
+          ),
         );
       },
     );
@@ -911,7 +905,7 @@ class _PackageListScreenState extends State<PackageListScreen>
 
   Widget _buildPackageGridCard(Package package) {
     return GestureDetector(
-      onTap: () => _showBookingDialog(package),
+      onTap: () => _navigateToPackageDetail(package),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -945,8 +939,8 @@ class _PackageListScreenState extends State<PackageListScreen>
                     ),
                   ),
                 ),
-                // Popular badge
-                if (package.isPopular)
+                // Tag badge
+                if (package.tag.isNotEmpty)
                   Positioned(
                     top: 8,
                     left: 8,
@@ -954,33 +948,12 @@ class _PackageListScreenState extends State<PackageListScreen>
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        'Popular',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                // Discount badge
-                if (package.originalPrice > package.price)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
+                        color:
+                            package.tag == 'Popular' ? Colors.red : Colors.blue,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
-                        '${(((package.originalPrice - package.price) / package.originalPrice) * 100).round()}% OFF',
+                        package.tag,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 8,
@@ -1010,7 +983,7 @@ class _PackageListScreenState extends State<PackageListScreen>
                         ),
                         const SizedBox(width: 2),
                         Text(
-                          package.location.split(',').first,
+                          package.location.name.split(',').first,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 8,
@@ -1048,7 +1021,7 @@ class _PackageListScreenState extends State<PackageListScreen>
                                   size: 8, color: AppColors.primaryOrange),
                               const SizedBox(width: 2),
                               Text(
-                                package.duration,
+                                '${package.duration} days',
                                 style: const TextStyle(
                                   color: AppColors.primaryOrange,
                                   fontSize: 8,
@@ -1063,16 +1036,16 @@ class _PackageListScreenState extends State<PackageListScreen>
                             const Icon(Icons.star,
                                 color: AppColors.primaryOrange, size: 10),
                             const SizedBox(width: 2),
-                            Text(
-                              '${package.rating}',
-                              style: const TextStyle(
+                            const Text(
+                              "5",
+                              style: TextStyle(
                                 color: AppColors.primaryOrange,
                                 fontSize: 9,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                             Text(
-                              ' (${package.reviewCount})',
+                              ' (${package.review})',
                               style: const TextStyle(
                                 color: AppColors.mediumGray,
                                 fontSize: 8,
@@ -1102,17 +1075,8 @@ class _PackageListScreenState extends State<PackageListScreen>
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (package.originalPrice > package.price)
-                              Text(
-                                'AED ${package.originalPrice}',
-                                style: const TextStyle(
-                                  fontSize: 9,
-                                  color: AppColors.mediumGray,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
                             Text(
-                              'AED ${package.price}',
+                              '${package.currency} ${package.price}',
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -1129,7 +1093,7 @@ class _PackageListScreenState extends State<PackageListScreen>
                           ],
                         ),
                         ElevatedButton(
-                          onPressed: () => _showBookingDialog(package),
+                          onPressed: () => _navigateToPackageDetail(package),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primaryOrange,
                             foregroundColor: Colors.white,
@@ -1163,7 +1127,7 @@ class _PackageListScreenState extends State<PackageListScreen>
 
   Widget _buildPackageListCard(Package package) {
     return GestureDetector(
-      onTap: () => _showBookingDialog(package),
+      onTap: () => _navigateToPackageDetail(package),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
@@ -1198,7 +1162,7 @@ class _PackageListScreenState extends State<PackageListScreen>
                     ),
                   ),
                 ),
-                if (package.isPopular)
+                if (package.tag.isNotEmpty)
                   Positioned(
                     top: 6,
                     left: 6,
@@ -1206,32 +1170,12 @@ class _PackageListScreenState extends State<PackageListScreen>
                       padding: const EdgeInsets.symmetric(
                           horizontal: 4, vertical: 1),
                       decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'Popular',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 7,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                if (package.originalPrice > package.price)
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 4, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
+                        color:
+                            package.tag == 'Popular' ? Colors.red : Colors.blue,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        '${(((package.originalPrice - package.price) / package.originalPrice) * 100).round()}% OFF',
+                        package.tag,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 7,
@@ -1269,12 +1213,19 @@ class _PackageListScreenState extends State<PackageListScreen>
                             const Icon(Icons.star,
                                 color: AppColors.primaryOrange, size: 12),
                             const SizedBox(width: 2),
-                            Text(
-                              '${package.rating}',
-                              style: const TextStyle(
+                            const Text(
+                              "5",
+                              style: TextStyle(
                                 color: AppColors.primaryOrange,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              ' (${package.review})',
+                              style: const TextStyle(
+                                color: AppColors.mediumGray,
+                                fontSize: 8,
                               ),
                             ),
                           ],
@@ -1288,7 +1239,7 @@ class _PackageListScreenState extends State<PackageListScreen>
                             size: 12, color: AppColors.mediumGray),
                         const SizedBox(width: 2),
                         Text(
-                          package.location,
+                          package.location.name,
                           style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.mediumGray,
@@ -1299,7 +1250,7 @@ class _PackageListScreenState extends State<PackageListScreen>
                             size: 12, color: AppColors.mediumGray),
                         const SizedBox(width: 2),
                         Text(
-                          package.duration,
+                          '${package.duration} days',
                           style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.mediumGray,
@@ -1322,30 +1273,16 @@ class _PackageListScreenState extends State<PackageListScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (package.originalPrice > package.price)
-                              Text(
-                                'AED ${package.originalPrice}',
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.mediumGray,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
-                            Text(
-                              'AED ${package.price}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryOrange,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          '${package.currency} ${package.price}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryOrange,
+                          ),
                         ),
                         ElevatedButton(
-                          onPressed: () => _showBookingDialog(package),
+                          onPressed: () => _navigateToPackageDetail(package),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primaryOrange,
                             foregroundColor: Colors.white,

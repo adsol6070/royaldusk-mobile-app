@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:royaldusk_mobile_app/constants/app_colors.dart';
+import 'package:royaldusk_mobile_app/models/package.dart';
+import 'package:royaldusk_mobile_app/services/api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -15,15 +17,21 @@ class _DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin {
   late PageController _pageController;
   late AnimationController _animationController;
+  final ApiService _apiService = ApiService();
+
   int _selectedServiceIndex = 0;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
+  bool _isLoading = true;
+  String? _errorMessage;
+  List<Package> allPackages = [];
+  List<Package> featuredPackages = [];
+
   // Contact information
   static const String bookingPhoneNumber = '+91-98761-49140';
   static const String bookingEmail = 'go@royaldusk.com';
-  static const String whatsappNumber =
-      '+919876149140'; // Without dashes for WhatsApp
+  static const String whatsappNumber = '+919876149140';
 
   @override
   void initState() {
@@ -33,7 +41,37 @@ class _DashboardScreenState extends State<DashboardScreen>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _animationController.forward();
+    _loadPackages();
+  }
+
+  Future<void> _loadPackages() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      // Load packages from API
+      final packages = await _apiService.getPackages();
+
+      setState(() {
+        allPackages = packages;
+        // Get first 5 packages as featured packages
+        featuredPackages = packages.take(5).toList();
+        _isLoading = false;
+      });
+
+      _animationController.forward();
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+      });
+    }
+  }
+
+  Future<void> _refreshPackages() async {
+    await _loadPackages();
   }
 
   @override
@@ -42,6 +80,14 @@ class _DashboardScreenState extends State<DashboardScreen>
     _animationController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _navigateToPackageDetail(Package package) {
+    Navigator.pushNamed(
+      context,
+      '/package-detail',
+      arguments: {'package': package},
+    );
   }
 
   // Helper method to get responsive values
@@ -105,15 +151,15 @@ class _DashboardScreenState extends State<DashboardScreen>
         return AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
+          title: const Row(
             children: [
               Icon(
                 Icons.contact_phone,
                 color: AppColors.primaryOrange,
                 size: 24,
               ),
-              const SizedBox(width: 8),
-              const Text(
+              SizedBox(width: 8),
+              Text(
                 'Contact Us',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
@@ -239,211 +285,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  void _showBookingDialog(String packageName, String price) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            children: [
-              Icon(
-                Icons.card_travel,
-                color: AppColors.primaryOrange,
-                size: 24,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Book Package',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.lightOrange,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Package: $packageName',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.darkGray,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Price: $price /person',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryOrange,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Choose your preferred booking method:',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.mediumGray,
-                ),
-              ),
-              const SizedBox(height: 16),
-              _buildBookingOption(
-                icon: Icons.phone,
-                title: 'Call to Book',
-                subtitle: 'Speak with our travel experts',
-                onTap: () {
-                  Navigator.pop(context);
-                  _makePhoneCall();
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildBookingOption(
-                icon: Icons.chat,
-                title: 'WhatsApp Booking',
-                subtitle: 'Quick booking via WhatsApp',
-                onTap: () {
-                  Navigator.pop(context);
-                  _openWhatsAppWithPackage(packageName, price);
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildBookingOption(
-                icon: Icons.email,
-                title: 'Email Inquiry',
-                subtitle: 'Get detailed information',
-                onTap: () {
-                  Navigator.pop(context);
-                  _sendEmailWithPackage(packageName, price);
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: AppColors.mediumGray),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildBookingOption({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.lightOrange,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                icon,
-                color: AppColors.primaryOrange,
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.darkGray,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.mediumGray,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: 12,
-              color: AppColors.mediumGray,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openWhatsAppWithPackage(
-      String packageName, String price) async {
-    final message =
-        'Hi! I\'m interested in booking the "$packageName" package ($price /person). Could you please provide more details and help me with the booking?';
-    final Uri whatsappUri = Uri.parse(
-        'https://wa.me/$whatsappNumber?text=${Uri.encodeComponent(message)}');
-    if (await canLaunchUrl(whatsappUri)) {
-      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-    } else {
-      _showContactDialog();
-    }
-  }
-
-  Future<void> _sendEmailWithPackage(String packageName, String price) async {
-    final subject = 'Booking Inquiry: $packageName';
-    final body =
-        'Dear Royal Dusk Tours,\n\nI am interested in booking the "$packageName" package ($price /person).\n\nPlease provide me with:\n- Detailed itinerary\n- Available dates\n- Booking process\n- Payment options\n\nThank you!\n\nBest regards';
-
-    final Uri emailUri = Uri(
-      scheme: 'mailto',
-      path: bookingEmail,
-      query:
-          'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
-    );
-    if (await canLaunchUrl(emailUri)) {
-      await launchUrl(emailUri);
-    } else {
-      _showContactDialog();
-    }
-  }
-
   void _performSearch() {
     if (_searchQuery.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -458,54 +299,78 @@ class _DashboardScreenState extends State<DashboardScreen>
       return;
     }
 
-    // Show search results dialog
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text('Search Results for "$_searchQuery"'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('We found several packages matching your search:'),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.lightOrange,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'Contact our travel experts to get personalized recommendations based on your search criteria.',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.darkGray,
-                  ),
-                ),
+    // Navigate to packages screen with search query
+    Navigator.pushNamed(
+      context,
+      '/packages',
+      arguments: {'searchQuery': _searchQuery},
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: CircularProgressIndicator(
+        color: AppColors.primaryOrange,
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.lightOrange,
+                borderRadius: BorderRadius.circular(40),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: const Icon(
+                Icons.error_outline,
+                size: 40,
+                color: AppColors.primaryOrange,
+              ),
             ),
+            const SizedBox(height: 24),
+            const Text(
+              'Unable to load packages',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: AppColors.darkGray,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage ?? 'An unexpected error occurred',
+              style: const TextStyle(
+                color: AppColors.mediumGray,
+                fontSize: 14,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _showContactDialog();
-              },
+              onPressed: _refreshPackages,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryOrange,
                 foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              child: const Text('Contact Us'),
+              child: const Text('Retry'),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -513,24 +378,40 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.lightGray,
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(),
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                _buildSearchWidget(),
-                _buildServicesSection(),
-                _buildPopularDestinations(),
-                _buildFeaturedPackages(),
-                _buildQuickActions(),
-                SizedBox(
-                    height:
-                        isTablet ? 120 : 100), // Bottom padding for navigation
-              ],
+      body: RefreshIndicator(
+        onRefresh: _refreshPackages,
+        color: AppColors.primaryOrange,
+        child: CustomScrollView(
+          slivers: [
+            _buildSliverAppBar(),
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  _buildSearchWidget(),
+                  _buildServicesSection(),
+                  _buildPopularDestinations(),
+                  if (_isLoading)
+                    Padding(
+                      padding: EdgeInsets.all(horizontalPadding),
+                      child: _buildLoadingState(),
+                    )
+                  else if (_errorMessage != null)
+                    Padding(
+                      padding: EdgeInsets.all(horizontalPadding),
+                      child: _buildErrorState(),
+                    )
+                  else
+                    _buildFeaturedPackages(),
+                  _buildQuickActions(),
+                  SizedBox(
+                      height: isTablet
+                          ? 120
+                          : 100), // Bottom padding for navigation
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -802,7 +683,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'e.g. Manali, Adventure tours, Beach holidays...',
+                hintText: 'e.g. Dubai, Adventure tours, Beach holidays...',
                 hintStyle: TextStyle(
                     color: AppColors.mediumGray, fontSize: isTablet ? 16 : 14),
                 border: InputBorder.none,
@@ -894,9 +775,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                 title: 'Travel Packages',
                 description: 'Complete tour packages with accommodation',
                 available: true,
-                stat: '120+',
+                stat: '${allPackages.length}+',
                 statLabel: 'Packages',
-                onTap: () => _showContactDialog(),
+                onTap: () => Navigator.pushNamed(context, '/packages'),
               ),
               _buildServiceCard(
                 icon: Icons.flight,
@@ -1067,32 +948,25 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildPopularDestinations() {
-    final destinations = [
-      {
-        'name': 'Manali',
-        'packages': '15 packages',
-        'image':
-            'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      },
-      {
-        'name': 'Goa',
-        'packages': '12 packages',
-        'image':
-            'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      },
-      {
-        'name': 'Kerala',
-        'packages': '18 packages',
-        'image':
-            'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      },
-      {
-        'name': 'Rajasthan',
-        'packages': '22 packages',
-        'image':
-            'https://images.unsplash.com/photo-1477587458883-47145ed94245?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      },
-    ];
+    // Get unique destinations from packages
+    Map<String, List<Package>> destinationGroups = {};
+    for (var package in allPackages) {
+      String destination = package.location.name;
+      if (!destinationGroups.containsKey(destination)) {
+        destinationGroups[destination] = [];
+      }
+      destinationGroups[destination]!.add(package);
+    }
+
+    // Convert to list and take top 4 destinations by package count
+    List<MapEntry<String, List<Package>>> destinations =
+        destinationGroups.entries.toList();
+    destinations.sort((a, b) => b.value.length.compareTo(a.value.length));
+    destinations = destinations.take(4).toList();
+
+    if (destinations.isEmpty) {
+      return const SizedBox.shrink(); // Don't show section if no destinations
+    }
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -1111,17 +985,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                   color: AppColors.darkGray,
                 ),
               ),
-              // TextButton(
-              //   onPressed: _showContactDialog,
-              //   child: Text(
-              //     'View All',
-              //     style: TextStyle(
-              //       color: AppColors.primaryOrange,
-              //       fontWeight: FontWeight.w500,
-              //       fontSize: isTablet ? 16 : 14,
-              //     ),
-              //   ),
-              // ),
             ],
           ),
           SizedBox(height: isTablet ? 20 : 16),
@@ -1131,9 +994,17 @@ class _DashboardScreenState extends State<DashboardScreen>
               scrollDirection: Axis.horizontal,
               itemCount: destinations.length,
               itemBuilder: (context, index) {
-                final destination = destinations[index];
+                final entry = destinations[index];
+                final destinationName = entry.key;
+                final packageCount = entry.value.length;
+                final firstPackage = entry.value.first;
+
                 return GestureDetector(
-                  onTap: () => _showContactDialog(),
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    '/packages',
+                    arguments: {'searchQuery': destinationName},
+                  ),
                   child: Container(
                     width: isTablet ? 180 : 140,
                     margin: EdgeInsets.only(right: isTablet ? 20 : 16),
@@ -1154,7 +1025,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           // Background Image
                           Positioned.fill(
                             child: Image.network(
-                              destination['image'] as String,
+                              firstPackage.location.imageUrl,
                               fit: BoxFit.cover,
                               loadingBuilder:
                                   (context, child, loadingProgress) {
@@ -1162,7 +1033,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   return child;
                                 }
                                 return Container(
-                                  color: Colors.grey[300],
+                                  color: AppColors.lightOrange,
                                   child: Center(
                                     child: CircularProgressIndicator(
                                       value:
@@ -1181,20 +1052,20 @@ class _DashboardScreenState extends State<DashboardScreen>
                               },
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
-                                  color: Colors.grey[300],
+                                  color: AppColors.lightOrange,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
                                         Icons.error_outline,
-                                        color: Colors.grey[600],
+                                        color: AppColors.primaryOrange,
                                         size: isTablet ? 32 : 24,
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
                                         'Image not available',
                                         style: TextStyle(
-                                          color: Colors.grey[600],
+                                          color: AppColors.primaryOrange,
                                           fontSize: isTablet ? 12 : 10,
                                         ),
                                         textAlign: TextAlign.center,
@@ -1229,7 +1100,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  destination['name'] as String,
+                                  destinationName,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: isTablet ? 20 : 16,
@@ -1246,7 +1117,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                                 SizedBox(height: isTablet ? 6 : 4),
                                 Text(
-                                  destination['packages'] as String,
+                                  '$packageCount package${packageCount > 1 ? 's' : ''}',
                                   style: TextStyle(
                                     color: Colors.white.withValues(alpha: 0.9),
                                     fontSize: isTablet ? 14 : 12,
@@ -1277,6 +1148,10 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildFeaturedPackages() {
+    if (featuredPackages.isEmpty) {
+      return const SizedBox.shrink(); // Don't show section if no packages
+    }
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       margin: EdgeInsets.only(top: isTablet ? 40 : 32),
@@ -1295,7 +1170,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
               ),
               TextButton(
-                // onPressed: _showContactDialog,
                 onPressed: () => Navigator.pushNamed(context, '/packages'),
                 child: Text(
                   'View All',
@@ -1313,9 +1187,9 @@ class _DashboardScreenState extends State<DashboardScreen>
             height: isTablet ? 340 : 280,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: 5,
+              itemCount: featuredPackages.length,
               itemBuilder: (context, index) {
-                return _buildPackageCard(index);
+                return _buildPackageCard(featuredPackages[index]);
               },
             ),
           ),
@@ -1324,57 +1198,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildPackageCard(int index) {
-    final packages = [
-      {
-        'name': 'Manali Adventure Tour',
-        'location': 'Manali, HP',
-        'duration': '5 Days',
-        'price': '₹15,999',
-        'rating': '4.5',
-        'image':
-            'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      },
-      {
-        'name': 'Goa Beach Paradise',
-        'location': 'Goa',
-        'duration': '4 Days',
-        'price': '₹12,999',
-        'rating': '4.8',
-        'image':
-            'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      },
-      {
-        'name': 'Kerala Backwaters',
-        'location': 'Kerala',
-        'duration': '6 Days',
-        'price': '₹18,999',
-        'rating': '4.6',
-        'image':
-            'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      },
-      {
-        'name': 'Rajasthan Heritage Tour',
-        'location': 'Rajasthan',
-        'duration': '7 Days',
-        'price': '₹22,999',
-        'rating': '4.7',
-        'image':
-            'https://images.unsplash.com/photo-1477587458883-47145ed94245?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      },
-      {
-        'name': 'Himachal Hill Station',
-        'location': 'Himachal Pradesh',
-        'duration': '5 Days',
-        'price': '₹16,999',
-        'rating': '4.4',
-        'image':
-            'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      },
-    ];
-
-    final package = packages[index % packages.length];
-
+  Widget _buildPackageCard(Package package) {
     return Container(
       width: isTablet ? 280 : 240,
       margin: EdgeInsets.only(right: isTablet ? 20 : 16),
@@ -1411,7 +1235,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     topRight: Radius.circular(isTablet ? 20 : 16),
                   ),
                   child: Image.network(
-                    package['image'] as String,
+                    package.imageUrl,
                     width: double.infinity,
                     height: double.infinity,
                     fit: BoxFit.cover,
@@ -1460,6 +1284,37 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                 ),
               ),
+              // Tag Badge
+              if (package.tag.isNotEmpty)
+                Positioned(
+                  top: isTablet ? 12 : 8,
+                  left: isTablet ? 12 : 8,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: isTablet ? 8 : 6,
+                        vertical: isTablet ? 3 : 2),
+                    decoration: BoxDecoration(
+                      color:
+                          package.tag == 'Popular' ? Colors.red : Colors.blue,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      package.tag,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isTablet ? 11 : 9,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
               // Available Badge
               Positioned(
                 top: isTablet ? 12 : 8,
@@ -1479,7 +1334,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ],
                   ),
                   child: Text(
-                    'Available',
+                    package.availability,
                     style: TextStyle(
                       color: const Color(0xFF059669),
                       fontSize: isTablet ? 11 : 9,
@@ -1509,7 +1364,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ),
                       SizedBox(width: isTablet ? 4 : 2),
                       Text(
-                        package['location'] as String,
+                        package.location.name,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: isTablet ? 12 : 9,
@@ -1557,7 +1412,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                             ),
                             SizedBox(width: isTablet ? 4 : 2),
                             Text(
-                              package['duration'] as String,
+                              '${package.duration} days',
                               style: TextStyle(
                                 color: AppColors.primaryOrange,
                                 fontSize: isTablet ? 12 : 9,
@@ -1576,11 +1431,18 @@ class _DashboardScreenState extends State<DashboardScreen>
                           ),
                           SizedBox(width: isTablet ? 4 : 2),
                           Text(
-                            package['rating'] as String,
+                            '5',
                             style: TextStyle(
                               color: AppColors.primaryOrange,
                               fontSize: isTablet ? 14 : 11,
                               fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            ' (${package.review})',
+                            style: TextStyle(
+                              color: AppColors.mediumGray,
+                              fontSize: isTablet ? 12 : 9,
                             ),
                           ),
                         ],
@@ -1589,7 +1451,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                   SizedBox(height: isTablet ? 10 : 6),
                   Text(
-                    package['name'] as String,
+                    package.name,
                     style: TextStyle(
                       fontSize: isTablet ? 16 : 13,
                       fontWeight: FontWeight.w600,
@@ -1607,11 +1469,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            package['price'] as String,
+                            '${package.currency} ${package.price}',
                             style: TextStyle(
                               fontSize: isTablet ? 18 : 14,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.darkGray,
+                              color: AppColors.primaryOrange,
                             ),
                           ),
                           Text(
@@ -1624,12 +1486,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ],
                       ),
                       ElevatedButton(
-                        onPressed: () {
-                          _showBookingDialog(
-                            package['name'] as String,
-                            package['price'] as String,
-                          );
-                        },
+                        onPressed: () => _navigateToPackageDetail(package),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryOrange,
                           foregroundColor: Colors.white,

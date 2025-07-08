@@ -339,7 +339,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         children: [
           _buildProfileHeader(user),
-          _buildQuickActions(),
+          // _buildQuickActions(),
           // _buildProfileMenu(),
           _buildAppInfo(),
         ],

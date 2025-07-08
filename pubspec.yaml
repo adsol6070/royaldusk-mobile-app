@@ -63,6 +63,7 @@ dependencies:
   sign_in_with_apple: ^7.0.1
   crypto: ^3.0.6
   logger: ^2.6.0
+  flutter_stripe: ^11.5.0
 
 dev_dependencies:
   flutter_test:
