@@ -68,15 +68,8 @@ class AuthService {
   // Apple Sign In
   static Future<User?> signInWithApple() async {
     try {
-      print('[DEBUG] Starting Apple Sign-In flow...');
-
-      // Generate a random nonce
       final rawNonce = _generateNonce();
       final nonce = _sha256ofString(rawNonce);
-      print('[DEBUG] Generated rawNonce: $rawNonce');
-      print('[DEBUG] Generated SHA256 nonce: $nonce');
-
-      // Request credential from Apple
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
@@ -85,38 +78,20 @@ class AuthService {
         nonce: nonce,
       );
 
-      print('[DEBUG] Apple Credential received:');
-      print(' - userIdentifier: ${appleCredential.userIdentifier}');
-      print(' - email: ${appleCredential.email}');
-      print(' - givenName: ${appleCredential.givenName}');
-      print(' - familyName: ${appleCredential.familyName}');
-      print(
-          ' - identityToken: ${appleCredential.identityToken?.substring(0, 20)}...');
-
       if (appleCredential.identityToken == null) {
-        print('[ERROR] identityToken is null!');
         return null;
       }
 
-      // Create OAuthCredential
       final oauthCredential = firebase_auth.OAuthProvider("apple.com")
           .credential(
               idToken: appleCredential.identityToken,
               rawNonce: rawNonce,
               accessToken: appleCredential.authorizationCode);
 
-      print('[DEBUG] Firebase OAuthCredential created');
-
-      // Sign in to Firebase
       final firebase_auth.UserCredential userCredential =
           await _firebaseAuth.signInWithCredential(oauthCredential);
 
-      print('[DEBUG] Firebase sign-in completed');
-
       if (userCredential.user != null) {
-        print('[DEBUG] Firebase user: ${userCredential.user!.uid}');
-
-        // Update display name
         if (appleCredential.givenName != null ||
             appleCredential.familyName != null) {
           String displayName = '';
@@ -127,15 +102,12 @@ class AuthService {
             displayName += appleCredential.familyName!;
           }
 
-          print('[DEBUG] Updating display name to: $displayName');
           await userCredential.user!.updateDisplayName(displayName);
         }
 
         _currentUser = _convertFirebaseUserToUser(userCredential.user!);
-        print('[DEBUG] _currentUser updated successfully');
         return _currentUser;
       } else {
-        print('[ERROR] Firebase user is null after sign-in');
         return null;
       }
     } catch (e, stack) {
@@ -317,40 +289,25 @@ class AuthService {
   /// Permanently delete user account and all associated data
   static Future<void> deleteAccount() async {
     try {
-      print('[DEBUG] Starting account deletion process...');
-
       final firebase_auth.User? firebaseUser = _firebaseAuth.currentUser;
 
       if (firebaseUser == null) {
         throw Exception('No authenticated user found');
       }
-
-      print('[DEBUG] Current user: ${firebaseUser.uid}');
-
-      // Step 1: Delete user data from your backend/Firestore
-      // (You should implement this based on your data structure)
       await _deleteUserData(firebaseUser.uid);
-
-      // Step 2: Sign out from external providers
       try {
         if (await _googleSignIn.isSignedIn()) {
-          print('[DEBUG] Signing out from Google...');
           await _googleSignIn.signOut();
         }
       } catch (e) {
-        print('[WARNING] Failed to sign out from Google: $e');
         // Continue with deletion even if Google sign out fails
       }
 
-      // Step 3: Delete the Firebase user account
-      print('[DEBUG] Deleting Firebase user account...');
       await firebaseUser.delete();
 
       // Step 4: Clear local state
       _currentUser = null;
       _verificationId = null;
-
-      print('[DEBUG] Account deletion completed successfully');
     } on firebase_auth.FirebaseAuthException catch (e) {
       print(
           '[ERROR] Firebase Auth error during account deletion: ${e.code} - ${e.message}');

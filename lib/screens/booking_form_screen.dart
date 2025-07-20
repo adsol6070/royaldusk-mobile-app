@@ -3,17 +3,111 @@ import 'package:flutter/services.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:royaldusk_mobile_app/constants/app_colors.dart';
 import 'package:royaldusk_mobile_app/models/package.dart';
+import 'package:royaldusk_mobile_app/models/tour.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class BookingFormScreen extends StatefulWidget {
+// Abstract class for bookable items
+abstract class BookableItem {
+  String get id;
+  String get name;
+  String get imageUrl;
+  String get locationName;
+  double get price;
+  String get currency;
+  String get serviceType;
+  String get durationText;
+  String get availabilityText;
+}
+
+// Package adapter
+class PackageBookableItem implements BookableItem {
   final Package package;
+
+  PackageBookableItem(this.package);
+
+  @override
+  String get id => package.id;
+
+  @override
+  String get name => package.name;
+
+  @override
+  String get imageUrl => package.imageUrl;
+
+  @override
+  String get locationName => package.location.name;
+
+  @override
+  double get price => package.price;
+
+  @override
+  String get currency => package.currency;
+
+  @override
+  String get serviceType => 'Package';
+
+  @override
+  String get durationText => '${package.duration} Days';
+
+  @override
+  String get availabilityText => package.availability;
+}
+
+// Tour adapter
+class TourBookableItem implements BookableItem {
+  final Tour tour;
+
+  TourBookableItem(this.tour);
+
+  @override
+  String get id => tour.id;
+
+  @override
+  String get name => tour.name;
+
+  @override
+  String get imageUrl => tour.imageUrl;
+
+  @override
+  String get locationName => tour.location.name;
+
+  @override
+  double get price => tour.price;
+
+  @override
+  String get currency => 'INR'; // Tours use INR
+
+  @override
+  String get serviceType => 'Tour';
+
+  @override
+  String get durationText => '4-6 Hours';
+
+  @override
+  String get availabilityText => tour.tourAvailability;
+}
+
+class BookingFormScreen extends StatefulWidget {
+  // final Package package;
+  final BookableItem item;
 
   const BookingFormScreen({
     super.key,
-    required this.package,
+    // required this.package,
+    required this.item,
   });
+
+  BookingFormScreen.fromPackage({
+    super.key,
+    required Package package,
+  }) : item = PackageBookableItem(package);
+
+  BookingFormScreen.fromTour({
+    super.key,
+    required Tour tour,
+  }) : item = TourBookableItem(tour);
 
   @override
   State<BookingFormScreen> createState() => _BookingFormScreenState();
@@ -290,17 +384,29 @@ class _BookingFormScreenState extends State<BookingFormScreen>
   // Create Payment Intent on your backend
   Future<Map<String, dynamic>?> _createPaymentIntent() async {
     try {
-      final totalPrice = widget.package.price * _numberOfTravelers;
+      final totalPrice = widget.item.price * _numberOfTravelers;
+
+      // Convert currency to appropriate format for Stripe
+      String stripeCurrency;
+      int stripeAmount;
+
+      if (widget.item.currency == 'AED') {
+        stripeCurrency = 'AED';
+        stripeAmount = (totalPrice * 100).round(); // Amount in fils
+      } else {
+        // For INR, convert to AED (approximate conversion)
+        stripeCurrency = 'AED';
+        stripeAmount = ((totalPrice * 0.02) * 100).round(); // 1 INR ≈ 0.02 AED
+      }
 
       final response = await http.post(
-        Uri.parse(
-            '$backendUrl/payment-service/payment/create-intent'), // Your new mobile endpoint
+        Uri.parse('$backendUrl/payment-service/payment/create-intent'),
         headers: {
           'Content-Type': 'application/json',
         },
         body: json.encode({
-          'amount': (totalPrice * 100).round(), // Amount in fils for AED
-          'currency': 'AED', // Match your web implementation
+          'amount': stripeAmount,
+          'currency': stripeCurrency,
           'metadata': {
             'guestName': _fullNameController.text,
             'guestEmail': _emailController.text,
@@ -308,18 +414,15 @@ class _BookingFormScreenState extends State<BookingFormScreen>
             'guestNationality': _selectedNationality,
             'remarks': _specialRequestsController.text,
             'paymentMethod': 'Credit Card',
-            'serviceType': 'Package',
-            'serviceId': widget.package.id, // Assuming package has an id
+            'serviceType': widget.item.serviceType,
+            'serviceId': widget.item.id,
             'serviceData': json.encode({
-              'packageId': widget.package.id,
+              'itemName': widget.item.name,
               'travelers': _numberOfTravelers,
-              'startDate': _selectedStartDate?.toIso8601String(),
-              'packageName': widget.package.name,
-              'price': widget.package.price,
-              'duration': widget.package.duration,
-              'location': widget.package.location.name,
+              'travelDate': _selectedStartDate?.toIso8601String(),
+              'price': widget.item.price,
+              'totalAmount': totalPrice.toString(),
             }),
-            'totalAmount': totalPrice.toString(),
           },
         }),
       );
@@ -406,128 +509,6 @@ class _BookingFormScreenState extends State<BookingFormScreen>
     }
   }
 
-  // Replace your _createPaymentIntent method with this:
-//   Future<Map<String, dynamic>?> _createCheckoutSession() async {
-//     try {
-//       final totalPrice = widget.package.price * _numberOfTravelers;
-
-//       final response = await http.post(
-//         Uri.parse(
-//             '$backendUrl/payment-service/payment/create-checkout-session'), // Change endpoint
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         body: json.encode({
-//           'amount': (totalPrice * 100).round(), // Amount in fils for AED
-//           'currency': 'AED',
-//           // Remove successUrl and cancelUrl for mobile
-//           'metadata': {
-//             'service_type': 'Package', // Match your webhook expectation
-//             'service_id': widget.package.id,
-//             'service_data': json.encode({
-//               'packageId': widget.package.id,
-//               'travelers': _numberOfTravelers,
-//               'startDate': _selectedStartDate?.toIso8601String(),
-//               'packageName': widget.package.name,
-//               'price': widget.package.price,
-//               'duration': widget.package.duration,
-//               'location': widget.package.location.name,
-//             }),
-//             'guest_name': _fullNameController.text,
-//             'guest_email': _emailController.text,
-//             'guest_phone': _phoneController.text,
-//             'guest_nationality': _selectedNationality ?? '',
-//             'remarks': _specialRequestsController.text,
-//           },
-//           'mode': 'payment', // Specify payment mode
-//           'payment_method_types': ['card'], // Specify payment methods
-//         }),
-//       );
-
-//       if (response.statusCode == 200) {
-//         return json.decode(response.body);
-//       } else {
-//         print('Failed to create checkout session: ${response.statusCode}');
-//         print('Response body: ${response.body}');
-//         return null;
-//       }
-//     } catch (e) {
-//       print('Error creating checkout session: $e');
-//       return null;
-//     }
-//   }
-
-// // Update your _processPayment method:
-//   Future<void> _processPayment() async {
-//     if (!_formKey.currentState!.validate() ||
-//         _selectedStartDate == null ||
-//         _selectedNationality == null) {
-//       _showValidationErrors();
-//       return;
-//     }
-
-//     setState(() {
-//       _isProcessingPayment = true;
-//     });
-
-//     try {
-//       // Step 1: Create Checkout Session (instead of Payment Intent)
-//       final checkoutData = await _createCheckoutSession();
-
-//       if (checkoutData == null) {
-//         _showErrorDialog('Failed to create payment session. Please try again.');
-//         return;
-//       }
-
-//       // Step 2: Initialize Payment Sheet with checkout session
-//       await Stripe.instance.initPaymentSheet(
-//         paymentSheetParameters: SetupPaymentSheetParameters(
-//           // Use checkout session client secret instead of payment intent
-//           paymentIntentClientSecret:
-//               checkoutData['payment_intent_client_secret'],
-//           merchantDisplayName: 'Royal Dusk Tours',
-//           customerId: checkoutData['customer_id'],
-//           customerEphemeralKeySecret: checkoutData['ephemeral_key'],
-//           billingDetails: BillingDetails(
-//             name: _fullNameController.text,
-//             email: _emailController.text,
-//             phone: _phoneController.text,
-//           ),
-//           style: ThemeMode.light,
-//           appearance: const PaymentSheetAppearance(
-//             primaryButton: PaymentSheetPrimaryButtonAppearance(
-//               colors: PaymentSheetPrimaryButtonTheme(
-//                 light: PaymentSheetPrimaryButtonThemeColors(
-//                   background: AppColors.primaryOrange,
-//                   text: Colors.white,
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ),
-//       );
-
-//       // Step 3: Present Payment Sheet
-//       await Stripe.instance.presentPaymentSheet();
-
-//       // Step 4: Payment successful
-//       _showPaymentSuccessDialog();
-//     } on StripeException catch (e) {
-//       if (e.error.code == FailureCode.Canceled) {
-//         // User canceled the payment
-//         _showErrorDialog('Payment was canceled.');
-//       } else {
-//         _showErrorDialog('Payment failed: ${e.error.message}');
-//       }
-//     } catch (e) {
-//       _showErrorDialog('An unexpected error occurred: $e');
-//     } finally {
-//       setState(() {
-//         _isProcessingPayment = false;
-//       });
-//     }
-//   }
-
   void _showValidationErrors() {
     String errorMessage = '';
     if (_selectedStartDate == null) {
@@ -593,7 +574,7 @@ class _BookingFormScreenState extends State<BookingFormScreen>
   }
 
   void _showPaymentSuccessDialog() {
-    final totalPrice = widget.package.price * _numberOfTravelers;
+    final totalPrice = widget.item.price * _numberOfTravelers;
 
     showDialog(
       context: context,
@@ -622,7 +603,7 @@ class _BookingFormScreenState extends State<BookingFormScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.package.name,
+                    widget.item.name,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -670,7 +651,7 @@ class _BookingFormScreenState extends State<BookingFormScreen>
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Total Paid: ${widget.package.currency} $totalPrice',
+                    'Total Paid: ${widget.item.currency} $totalPrice',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -681,9 +662,9 @@ class _BookingFormScreenState extends State<BookingFormScreen>
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Your booking has been confirmed! You will receive a confirmation email shortly with your booking details.',
-              style: TextStyle(fontSize: 14, color: AppColors.mediumGray),
+            Text(
+              'Your ${widget.item.serviceType.toLowerCase()} booking has been confirmed! You will receive a confirmation email shortly with your booking details.',
+              style: const TextStyle(fontSize: 14, color: AppColors.mediumGray),
             ),
           ],
         ),
@@ -692,10 +673,10 @@ class _BookingFormScreenState extends State<BookingFormScreen>
             onPressed: () {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Go back to detail screen
-              Navigator.pop(context); // Go back to package list
+              Navigator.pop(context); // Go back to list screen
             },
-            child: const Text('Back to Packages',
-                style: TextStyle(color: AppColors.mediumGray)),
+            child: Text('Back to ${widget.item.serviceType}s',
+                style: const TextStyle(color: AppColors.mediumGray)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -714,18 +695,18 @@ class _BookingFormScreenState extends State<BookingFormScreen>
   }
 
   Future<void> _contactViaWhatsApp() async {
-    final totalPrice = widget.package.price * _numberOfTravelers;
+    final totalPrice = widget.item.price * _numberOfTravelers;
     final message = '''
 Hi! I've just submitted a booking request:
 
-Package: ${widget.package.name}
+Package: ${widget.item.name}
 Name: ${_fullNameController.text}
 Email: ${_emailController.text}
 Phone: ${_phoneController.text}
 Nationality: $_selectedNationality
 Start Date: ${_selectedStartDate?.day}/${_selectedStartDate?.month}/${_selectedStartDate?.year}
 Travelers: $_numberOfTravelers
-Total Price: ${widget.package.currency} $totalPrice
+Total Price: ${widget.item.currency} $totalPrice
 
 ${_specialRequestsController.text.isNotEmpty ? 'Special Requests: ${_specialRequestsController.text}' : ''}
 
@@ -751,7 +732,7 @@ Please confirm my booking and provide payment details.
             opacity: _animationController,
             child: Column(
               children: [
-                _buildPackageHeader(),
+                _buildItemHeader(),
                 Expanded(
                   child: _buildBookingForm(),
                 ),
@@ -802,7 +783,7 @@ Please confirm my booking and provide payment details.
     );
   }
 
-  Widget _buildPackageHeader() {
+  Widget _buildItemHeader() {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.all(16),
@@ -811,10 +792,24 @@ Please confirm my booking and provide payment details.
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
-              widget.package.imageUrl,
+              widget.item.imageUrl,
               width: 80,
               height: 80,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 80,
+                  height: 80,
+                  color: AppColors.lightOrange,
+                  child: Icon(
+                    widget.item.serviceType == 'Tour'
+                        ? Icons.tour
+                        : Icons.card_travel,
+                    color: AppColors.primaryOrange,
+                    size: 32,
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(width: 16),
@@ -823,7 +818,7 @@ Please confirm my booking and provide payment details.
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.package.name,
+                  widget.item.name,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -839,18 +834,23 @@ Please confirm my booking and provide payment details.
                         size: 14, color: AppColors.mediumGray),
                     const SizedBox(width: 4),
                     Text(
-                      widget.package.location.name,
+                      widget.item.locationName,
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.mediumGray,
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Icon(Icons.access_time,
-                        size: 14, color: AppColors.mediumGray),
+                    Icon(
+                      widget.item.serviceType == 'Tour'
+                          ? Icons.schedule
+                          : Icons.access_time,
+                      size: 14,
+                      color: AppColors.mediumGray,
+                    ),
                     const SizedBox(width: 4),
                     Text(
-                      '${widget.package.duration} Days',
+                      widget.item.durationText,
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.mediumGray,
@@ -860,7 +860,7 @@ Please confirm my booking and provide payment details.
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${widget.package.currency} ${widget.package.price} /person',
+                  '${widget.item.currency} ${widget.item.price} /person',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -1173,7 +1173,7 @@ Please confirm my booking and provide payment details.
   }
 
   Widget _buildBottomSection() {
-    final totalPrice = widget.package.price * _numberOfTravelers;
+    final totalPrice = widget.item.price * _numberOfTravelers;
 
     return Container(
       color: Colors.white,
@@ -1198,7 +1198,7 @@ Please confirm my booking and provide payment details.
                   ),
                 ),
                 Text(
-                  '${widget.package.currency} $totalPrice',
+                  '${widget.item.currency} $totalPrice',
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,

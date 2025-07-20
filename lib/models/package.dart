@@ -1,3 +1,8 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'package.g.dart';
+
+@JsonSerializable(explicitToJson: true)
 class Package {
   final String id;
   final String name;
@@ -53,100 +58,24 @@ class Package {
     required this.exclusions,
   });
 
-  factory Package.fromJson(Map<String, dynamic> json) {
-    return Package(
-      id: json['id'],
-      name: json['name'],
-      slug: json['slug'],
-      description: json['description'],
-      review: json['review'],
-      currency: json['currency'],
-      importantInfo: json['importantInfo'],
-      locationId: json['locationId'],
-      price: json['price'].toDouble(),
-      duration: json['duration'],
-      availability: json['availability'],
-      hotels: json['hotels'],
-      imageUrl: json['imageUrl'],
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
-      categoryID: json['categoryID'],
-      policyID: json['policyID'],
-      tag: json['tag'],
-      category: Category.fromJson(json['category']),
-      location: Location.fromJson(json['location']),
-      features: (json['features'] as List)
-          .map((feature) => Feature.fromJson(feature))
-          .toList(),
-      itineraries: (json['itineraries'] as List)
-          .map((itinerary) => Itinerary.fromJson(itinerary))
-          .toList(),
-      policy: Policy.fromJson(json['policy']),
-      inclusions: (json['inclusions'] as List)
-          .map((inclusion) => Inclusion.fromJson(inclusion))
-          .toList(),
-      exclusions: (json['exclusions'] as List)
-          .map((exclusion) => Exclusion.fromJson(exclusion))
-          .toList(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'slug': slug,
-      'description': description,
-      'review': review,
-      'currency': currency,
-      'importantInfo': importantInfo,
-      'locationId': locationId,
-      'price': price,
-      'duration': duration,
-      'availability': availability,
-      'hotels': hotels,
-      'imageUrl': imageUrl,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-      'categoryID': categoryID,
-      'policyID': policyID,
-      'tag': tag,
-      'category': category.toJson(),
-      'location': location.toJson(),
-      'features': features.map((feature) => feature.toJson()).toList(),
-      'itineraries':
-          itineraries.map((itinerary) => itinerary.toJson()).toList(),
-      'policy': policy.toJson(),
-      'inclusions': inclusions.map((inclusion) => inclusion.toJson()).toList(),
-      'exclusions': exclusions.map((exclusion) => exclusion.toJson()).toList(),
-    };
-  }
+  factory Package.fromJson(Map<String, dynamic> json) =>
+      _$PackageFromJson(json);
+  Map<String, dynamic> toJson() => _$PackageToJson(this);
 }
 
+@JsonSerializable()
 class Category {
   final String id;
   final String name;
 
-  Category({
-    required this.id,
-    required this.name,
-  });
+  Category({required this.id, required this.name});
 
-  factory Category.fromJson(Map<String, dynamic> json) {
-    return Category(
-      id: json['id'],
-      name: json['name'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-    };
-  }
+  factory Category.fromJson(Map<String, dynamic> json) =>
+      _$CategoryFromJson(json);
+  Map<String, dynamic> toJson() => _$CategoryToJson(this);
 }
 
+@JsonSerializable()
 class Location {
   final String id;
   final String name;
@@ -162,51 +91,24 @@ class Location {
     required this.updatedAt,
   });
 
-  factory Location.fromJson(Map<String, dynamic> json) {
-    return Location(
-      id: json['id'],
-      name: json['name'],
-      imageUrl: json['imageUrl'],
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'imageUrl': imageUrl,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-    };
-  }
+  factory Location.fromJson(Map<String, dynamic> json) =>
+      _$LocationFromJson(json);
+  Map<String, dynamic> toJson() => _$LocationToJson(this);
 }
 
+@JsonSerializable()
 class Feature {
   final String id;
   final String name;
 
-  Feature({
-    required this.id,
-    required this.name,
-  });
+  Feature({required this.id, required this.name});
 
-  factory Feature.fromJson(Map<String, dynamic> json) {
-    return Feature(
-      id: json['id'],
-      name: json['name'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-    };
-  }
+  factory Feature.fromJson(Map<String, dynamic> json) =>
+      _$FeatureFromJson(json);
+  Map<String, dynamic> toJson() => _$FeatureToJson(this);
 }
 
+@JsonSerializable()
 class Itinerary {
   final String id;
   final String title;
@@ -218,23 +120,12 @@ class Itinerary {
     required this.description,
   });
 
-  factory Itinerary.fromJson(Map<String, dynamic> json) {
-    return Itinerary(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'description': description,
-    };
-  }
+  factory Itinerary.fromJson(Map<String, dynamic> json) =>
+      _$ItineraryFromJson(json);
+  Map<String, dynamic> toJson() => _$ItineraryToJson(this);
 }
 
+@JsonSerializable()
 class Policy {
   final String id;
   final String bookingPolicy;
@@ -250,71 +141,30 @@ class Policy {
     required this.visaDetail,
   });
 
-  factory Policy.fromJson(Map<String, dynamic> json) {
-    return Policy(
-      id: json['id'],
-      bookingPolicy: json['bookingPolicy'],
-      cancellationPolicy: json['cancellationPolicy'],
-      paymentTerms: json['paymentTerms'],
-      visaDetail: json['visaDetail'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'bookingPolicy': bookingPolicy,
-      'cancellationPolicy': cancellationPolicy,
-      'paymentTerms': paymentTerms,
-      'visaDetail': visaDetail,
-    };
-  }
+  factory Policy.fromJson(Map<String, dynamic> json) => _$PolicyFromJson(json);
+  Map<String, dynamic> toJson() => _$PolicyToJson(this);
 }
 
+@JsonSerializable()
 class Inclusion {
   final String id;
   final String name;
 
-  Inclusion({
-    required this.id,
-    required this.name,
-  });
+  Inclusion({required this.id, required this.name});
 
-  factory Inclusion.fromJson(Map<String, dynamic> json) {
-    return Inclusion(
-      id: json['id'],
-      name: json['name'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-    };
-  }
+  factory Inclusion.fromJson(Map<String, dynamic> json) =>
+      _$InclusionFromJson(json);
+  Map<String, dynamic> toJson() => _$InclusionToJson(this);
 }
 
+@JsonSerializable()
 class Exclusion {
   final String id;
   final String name;
 
-  Exclusion({
-    required this.id,
-    required this.name,
-  });
+  Exclusion({required this.id, required this.name});
 
-  factory Exclusion.fromJson(Map<String, dynamic> json) {
-    return Exclusion(
-      id: json['id'],
-      name: json['name'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-    };
-  }
+  factory Exclusion.fromJson(Map<String, dynamic> json) =>
+      _$ExclusionFromJson(json);
+  Map<String, dynamic> toJson() => _$ExclusionToJson(this);
 }

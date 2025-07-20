@@ -14,11 +14,63 @@
       },
       "oauth_client": [
         {
+          "client_id": "874114819410-01qabi4d1fu5bsoec68i2hi0gaqjg5cc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.royaldusk_mobile_app",
+            "certificate_hash": "be68b5947ff67a751a969bf3063686c8407779a6"
+          }
+        },
+        {
           "client_id": "874114819410-tbr5t638rr7sqg2inecgd880trl8upo2.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.royaldusk_mobile_app",
             "certificate_hash": "5249d5f592fb670b079fc32d2edc83194a424452"
+          }
+        },
+        {
+          "client_id": "874114819410-c9e0upva47v3hr5edsi0u4cr0vu63dtb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvmZxeQn9Slki83srC3Fk-BT9tkI3yqDI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "874114819410-c9e0upva47v3hr5edsi0u4cr0vu63dtb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "874114819410-md66ouov3e0ifbqvstjrnfbs2p0hn7ll.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.royalduskMobileApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:874114819410:android:98b0bba29e96a9ba24468b",
+        "android_client_info": {
+          "package_name": "com.royaldusk.tours"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "874114819410-joqdgubt5m9acrpirsaigoj7d4tvo5mb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.royaldusk.tours",
+            "certificate_hash": "89ffd77248d7a799084d51bdb48d58dc9540d3b5"
           }
         },
         {

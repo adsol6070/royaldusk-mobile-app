@@ -1,143 +1,328 @@
-// lib/services/api_service.dart
+// services/api_service.dart
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:royaldusk_mobile_app/models/package.dart';
+import 'package:royaldusk_mobile_app/utils/api_response.dart';
+import 'package:royaldusk_mobile_app/utils/app_constants.dart';
+import 'package:royaldusk_mobile_app/utils/storage_helper.dart';
 
-class ApiService {
-  static const String baseUrl = 'https://api.royaldusk.com';
-  static const String packageEndpoint = '/package-service/api/package';
+/// Base API service class that handles common HTTP operations
+abstract class ApiService {
+  static const Duration _defaultTimeout = Duration(seconds: 30);
+  static const String _contentType = 'application/json';
 
-  // Private constructor for singleton pattern
-  ApiService._internal();
-  static final ApiService _instance = ApiService._internal();
-  factory ApiService() => _instance;
+  /// Base URL for API requests
+  String get baseUrl => AppConstants.apiBaseUrl;
 
-  // Get all packages
-  Future<List<Package>> getPackages() async {
-    try {
-      final url = Uri.parse('$baseUrl$packageEndpoint');
+  /// Default headers for all requests
+  Map<String, String> get defaultHeaders => {
+        'Content-Type': _contentType,
+        'Accept': _contentType,
+      };
 
-      final response = await http.get(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      );
+  /// Get authentication headers
+  Future<Map<String, String>> getAuthHeaders() async {
+    final token = await StorageHelper.getAuthToken();
+    if (token != null) {
+      return {'Authorization': 'Bearer $token'};
+    }
+    return {};
+  }
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+  /// Combine default headers with auth headers
+  Future<Map<String, String>> _buildHeaders(
+      [Map<String, String>? additionalHeaders]) async {
+    final headers = <String, String>{};
+    headers.addAll(defaultHeaders);
+    headers.addAll(await getAuthHeaders());
 
-        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
-          final List<dynamic> packagesData = jsonResponse['data'];
-          return packagesData
-              .map((packageJson) => Package.fromJson(packageJson))
-              .toList();
-        } else {
-          throw Exception(
-              'API returned unsuccessful response: ${jsonResponse['message']}');
-        }
-      } else {
-        throw Exception(
-            'Failed to load packages. Status code: ${response.statusCode}');
+    if (additionalHeaders != null) {
+      headers.addAll(additionalHeaders);
+    }
+
+    return headers;
+  }
+
+  /// Build complete URL with query parameters
+  String _buildUrl(String endpoint, [Map<String, String>? queryParams]) {
+    var url = baseUrl + endpoint;
+
+    if (queryParams != null && queryParams.isNotEmpty) {
+      final queryString = queryParams.entries
+          .where((entry) => entry.value.isNotEmpty)
+          .map((entry) => '${entry.key}=${Uri.encodeComponent(entry.value)}')
+          .join('&');
+
+      if (queryString.isNotEmpty) {
+        url += '?$queryString';
       }
-    } catch (e) {
-      throw Exception('Error fetching packages: $e');
     }
+
+    return url;
   }
 
-  // Get package by ID
-  Future<Package?> getPackageById(String id) async {
+  /// Handle HTTP response and convert to ApiResponse
+  ApiResponse<Map<String, dynamic>> _handleResponse(http.Response response) {
     try {
-      final packages = await getPackages();
-      return packages.firstWhere(
-        (package) => package.id == id,
-        orElse: () => throw Exception('Package not found'),
+      final body = response.body;
+      Map<String, dynamic> data = {};
+
+      if (body.isNotEmpty) {
+        data = json.decode(body) as Map<String, dynamic>;
+      }
+
+      final isSuccess = response.statusCode >= 200 && response.statusCode < 300;
+
+      return ApiResponse.fromHttpResponse(
+        isSuccess: isSuccess,
+        statusCode: response.statusCode,
+        data: data,
+        message: data['message'] as String? ??
+            _getDefaultMessage(response.statusCode),
+        errorCode: data['errorCode'] as String?,
+        meta: data['meta'] as Map<String, dynamic>?,
       );
     } catch (e) {
-      throw Exception('Error fetching package by ID: $e');
+      return ApiResponse.error(
+        message: 'Failed to parse response: $e',
+        statusCode: response.statusCode,
+      );
     }
   }
 
-  // Filter packages by category
-  Future<List<Package>> getPackagesByCategory(String category) async {
-    try {
-      final packages = await getPackages();
-      if (category.toLowerCase() == 'all') {
-        return packages;
-      }
-      return packages
-          .where((package) =>
-              package.category.name.toLowerCase() == category.toLowerCase())
-          .toList();
-    } catch (e) {
-      throw Exception('Error filtering packages by category: $e');
-    }
-  }
-
-  // Search packages by name or location
-  Future<List<Package>> searchPackages(String query) async {
-    try {
-      final packages = await getPackages();
-      final lowercaseQuery = query.toLowerCase();
-
-      return packages
-          .where((package) =>
-              package.name.toLowerCase().contains(lowercaseQuery) ||
-              package.location.name.toLowerCase().contains(lowercaseQuery) ||
-              package.description.toLowerCase().contains(lowercaseQuery))
-          .toList();
-    } catch (e) {
-      throw Exception('Error searching packages: $e');
-    }
-  }
-
-  // Get unique categories
-  Future<List<String>> getCategories() async {
-    try {
-      final packages = await getPackages();
-      final categories =
-          packages.map((package) => package.category.name).toSet().toList();
-      categories.sort();
-      return ['All', ...categories];
-    } catch (e) {
-      throw Exception('Error fetching categories: $e');
-    }
-  }
-
-  // Sort packages
-  List<Package> sortPackages(List<Package> packages, String sortBy) {
-    final List<Package> sortedPackages = List.from(packages);
-
-    switch (sortBy) {
-      case 'Price: Low to High':
-        sortedPackages.sort((a, b) => a.price.compareTo(b.price));
-        break;
-      case 'Price: High to Low':
-        sortedPackages.sort((a, b) => b.price.compareTo(a.price));
-        break;
-      case 'Duration':
-        sortedPackages.sort((a, b) => a.duration.compareTo(b.duration));
-        break;
-      case 'Popular':
-        sortedPackages.sort((a, b) {
-          // Sort by tag (Popular first), then by review count
-          if (a.tag == 'Popular' && b.tag != 'Popular') return -1;
-          if (b.tag == 'Popular' && a.tag != 'Popular') return 1;
-          return b.review.compareTo(a.review);
-        });
-        break;
-      case 'Rating':
-        sortedPackages.sort((a, b) => b.review.compareTo(a.review));
-        break;
+  /// Get default message based on status code
+  String _getDefaultMessage(int statusCode) {
+    switch (statusCode) {
+      case 200:
+        return 'Request successful';
+      case 201:
+        return 'Created successfully';
+      case 204:
+        return 'No content';
+      case 400:
+        return 'Bad request';
+      case 401:
+        return 'Unauthorized';
+      case 403:
+        return 'Forbidden';
+      case 404:
+        return 'Not found';
+      case 422:
+        return 'Validation error';
+      case 500:
+        return 'Internal server error';
       default:
-        // Default sorting by Popular
-        sortedPackages.sort((a, b) {
-          if (a.tag == 'Popular' && b.tag != 'Popular') return -1;
-          if (b.tag == 'Popular' && a.tag != 'Popular') return 1;
-          return b.review.compareTo(a.review);
-        });
+        return 'Request failed';
     }
+  }
 
-    return sortedPackages;
+  /// Handle network exceptions
+  ApiResponse<Map<String, dynamic>> _handleException(dynamic exception) {
+    if (exception is SocketException) {
+      return ApiResponse.error(
+        message: 'No internet connection',
+        errorCode: 'NETWORK_ERROR',
+      );
+    } else if (exception is http.ClientException) {
+      return ApiResponse.error(
+        message: 'Connection timeout',
+        errorCode: 'TIMEOUT_ERROR',
+      );
+    } else {
+      return ApiResponse.error(
+        message: 'An unexpected error occurred: $exception',
+        errorCode: 'UNKNOWN_ERROR',
+      );
+    }
+  }
+
+  /// Perform GET request
+  Future<ApiResponse<Map<String, dynamic>>> get(
+    String endpoint, {
+    Map<String, String>? queryParams,
+    Map<String, String>? headers,
+    Duration? timeout,
+  }) async {
+    try {
+      final url = _buildUrl(endpoint, queryParams);
+      final requestHeaders = await _buildHeaders(headers);
+
+      final response = await http
+          .get(
+            Uri.parse(url),
+            headers: requestHeaders,
+          )
+          .timeout(timeout ?? _defaultTimeout);
+
+      return _handleResponse(response);
+    } catch (e) {
+      return _handleException(e);
+    }
+  }
+
+  /// Perform POST request
+  Future<ApiResponse<Map<String, dynamic>>> post(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+    Duration? timeout,
+  }) async {
+    try {
+      final url = _buildUrl(endpoint);
+      final requestHeaders = await _buildHeaders(headers);
+
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: requestHeaders,
+            body: body != null ? json.encode(body) : null,
+          )
+          .timeout(timeout ?? _defaultTimeout);
+
+      return _handleResponse(response);
+    } catch (e) {
+      return _handleException(e);
+    }
+  }
+
+  /// Perform PUT request
+  Future<ApiResponse<Map<String, dynamic>>> put(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+    Duration? timeout,
+  }) async {
+    try {
+      final url = _buildUrl(endpoint);
+      final requestHeaders = await _buildHeaders(headers);
+
+      final response = await http
+          .put(
+            Uri.parse(url),
+            headers: requestHeaders,
+            body: body != null ? json.encode(body) : null,
+          )
+          .timeout(timeout ?? _defaultTimeout);
+
+      return _handleResponse(response);
+    } catch (e) {
+      return _handleException(e);
+    }
+  }
+
+  /// Perform PATCH request
+  Future<ApiResponse<Map<String, dynamic>>> patch(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+    Duration? timeout,
+  }) async {
+    try {
+      final url = _buildUrl(endpoint);
+      final requestHeaders = await _buildHeaders(headers);
+
+      final response = await http
+          .patch(
+            Uri.parse(url),
+            headers: requestHeaders,
+            body: body != null ? json.encode(body) : null,
+          )
+          .timeout(timeout ?? _defaultTimeout);
+
+      return _handleResponse(response);
+    } catch (e) {
+      return _handleException(e);
+    }
+  }
+
+  /// Perform DELETE request
+  Future<ApiResponse<Map<String, dynamic>>> delete(
+    String endpoint, {
+    Map<String, String>? headers,
+    Duration? timeout,
+  }) async {
+    try {
+      final url = _buildUrl(endpoint);
+      final requestHeaders = await _buildHeaders(headers);
+
+      final response = await http
+          .delete(
+            Uri.parse(url),
+            headers: requestHeaders,
+          )
+          .timeout(timeout ?? _defaultTimeout);
+
+      return _handleResponse(response);
+    } catch (e) {
+      return _handleException(e);
+    }
+  }
+
+  /// Upload file with multipart request
+  Future<ApiResponse<Map<String, dynamic>>> uploadFile(
+    String endpoint, {
+    required String fieldName,
+    required String filePath,
+    Map<String, String>? fields,
+    Map<String, String>? headers,
+    Duration? timeout,
+  }) async {
+    try {
+      final url = _buildUrl(endpoint);
+      final requestHeaders = await _buildHeaders(headers);
+
+      final request = http.MultipartRequest('POST', Uri.parse(url))
+        ..headers.addAll(requestHeaders)
+        ..files.add(await http.MultipartFile.fromPath(fieldName, filePath));
+
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+
+      final streamedResponse =
+          await request.send().timeout(timeout ?? _defaultTimeout);
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return _handleResponse(response);
+    } catch (e) {
+      return _handleException(e);
+    }
+  }
+
+  /// Download file
+  Future<ApiResponse<List<int>>> downloadFile(
+    String endpoint, {
+    Map<String, String>? headers,
+    Duration? timeout,
+  }) async {
+    try {
+      final url = _buildUrl(endpoint);
+      final requestHeaders = await _buildHeaders(headers);
+
+      final response = await http
+          .get(
+            Uri.parse(url),
+            headers: requestHeaders,
+          )
+          .timeout(timeout ?? _defaultTimeout);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return ApiResponse.success(
+          data: response.bodyBytes,
+          message: 'File downloaded successfully',
+          statusCode: response.statusCode,
+        );
+      } else {
+        return ApiResponse.error(
+          message: 'Failed to download file',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      return ApiResponse.error(
+        message: 'Failed to download file: $e',
+        errorCode: 'DOWNLOAD_ERROR',
+      );
+    }
   }
 }

@@ -2,8 +2,151 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:royaldusk_mobile_app/constants/app_colors.dart';
 import 'package:royaldusk_mobile_app/models/package.dart';
-import 'package:royaldusk_mobile_app/services/api_service.dart';
+import 'package:royaldusk_mobile_app/models/tour.dart';
+import 'package:royaldusk_mobile_app/services/package_api_service.dart';
+import 'package:royaldusk_mobile_app/services/tour_api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+enum ServiceType {
+  packages('Packages', 'Travel Packages',
+      'Complete tour packages with accommodation'),
+  flights('Flights', 'Flight Booking', 'Book flights at competitive prices'),
+  hotels(
+      'Hotels', 'Hotel Reservations', 'Find hotels with exclusive discounts'),
+  tours('Tours', 'Custom Tours', 'Personalized tour experiences');
+
+  const ServiceType(this.displayName, this.title, this.description);
+
+  final String displayName;
+  final String title;
+  final String description;
+}
+
+abstract class DisplayableItem {
+  String get id;
+  String get name;
+  String get imageUrl;
+  String get locationName;
+  String get locationImageUrl;
+  String get tag;
+  String get availability;
+  double get price;
+  String get currency;
+  int get duration;
+  int get review;
+  String get durationLabel;
+  String get priceLabel;
+}
+
+class PackageDisplayItem implements DisplayableItem {
+  final Package package;
+
+  PackageDisplayItem(this.package);
+
+  @override
+  String get id => package.id;
+
+  @override
+  String get name => package.name;
+
+  @override
+  String get imageUrl => package.imageUrl;
+
+  @override
+  String get locationName => package.location.name;
+
+  @override
+  String get locationImageUrl => package.location.imageUrl;
+
+  @override
+  String get tag => package.tag;
+
+  @override
+  String get availability => package.availability;
+
+  @override
+  double get price => package.price;
+
+  @override
+  String get currency => package.currency;
+
+  @override
+  int get duration => package.duration;
+
+  @override
+  int get review => package.review;
+
+  @override
+  String get durationLabel => '${package.duration} days';
+
+  @override
+  String get priceLabel => '/person';
+}
+
+class TourDisplayItem implements DisplayableItem {
+  final Tour tour;
+
+  TourDisplayItem(this.tour);
+
+  @override
+  String get id => tour.id;
+
+  @override
+  String get name => tour.name;
+
+  @override
+  String get imageUrl => tour.imageUrl;
+
+  @override
+  String get locationName => tour.location.name;
+
+  @override
+  String get locationImageUrl => tour.location.imageUrl;
+
+  @override
+  String get tag => tour.tag;
+
+  @override
+  String get availability => tour.tourAvailability;
+
+  @override
+  double get price => tour.price;
+
+  @override
+  String get currency => 'INR'; // Default currency for tours
+
+  @override
+  int get duration => 4; // Default tour duration in hours
+
+  @override
+  int get review => 25; // Default review count for tours
+
+  @override
+  String get durationLabel => '4 hours'; // Tours are typically in hours
+
+  @override
+  String get priceLabel => '/person';
+}
+
+class ServiceConfig {
+  final ServiceType type;
+  final IconData icon;
+  final bool isAvailable;
+  final String searchPlaceholder;
+  final String featuredSectionTitle;
+  final String destinationSectionTitle;
+  final String routeName;
+
+  const ServiceConfig({
+    required this.type,
+    required this.icon,
+    required this.isAvailable,
+    required this.searchPlaceholder,
+    required this.featuredSectionTitle,
+    required this.destinationSectionTitle,
+    required this.routeName,
+  });
+}
 
 class DashboardScreen extends StatefulWidget {
   final bool showAppBar;
@@ -17,7 +160,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin {
   late PageController _pageController;
   late AnimationController _animationController;
-  final ApiService _apiService = ApiService();
+  final PackageApiService _packageService = PackageApiService();
+  final TourApiService _tourService = TourApiService();
 
   int _selectedServiceIndex = 0;
   String _searchQuery = '';
@@ -25,42 +169,103 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   bool _isLoading = true;
   String? _errorMessage;
-  List<Package> allPackages = [];
-  List<Package> featuredPackages = [];
+  List<Package> _allPackages = [];
+  List<Tour> _allTours = [];
+  // List<Package> featuredPackages = [];
+  List<DisplayableItem> _currentFeaturedItems = [];
+  Map<String, List<DisplayableItem>> _destinationGroups = {};
+  // List<Package> featuredItems = [];
 
   // Contact information
   static const String bookingPhoneNumber = '+91-98761-49140';
   static const String bookingEmail = 'go@royaldusk.com';
   static const String whatsappNumber = '+919876149140';
 
+  // Service configurations
+  late final List<ServiceConfig> _serviceConfigs;
+
   @override
   void initState() {
     super.initState();
+    _initializeServiceConfigs();
     _pageController = PageController();
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _loadPackages();
+    // _loadPackages();
+    _loadData();
   }
 
-  Future<void> _loadPackages() async {
+  void _initializeServiceConfigs() {
+    _serviceConfigs = [
+      const ServiceConfig(
+        type: ServiceType.packages,
+        icon: Icons.route,
+        isAvailable: true,
+        searchPlaceholder: 'e.g. Dubai, Beach holidays, Adventure packages...',
+        featuredSectionTitle: 'Featured Packages',
+        destinationSectionTitle: 'Popular Destinations',
+        routeName: '/packages',
+      ),
+      const ServiceConfig(
+        type: ServiceType.flights,
+        icon: Icons.flight,
+        isAvailable: false,
+        searchPlaceholder: 'e.g. Mumbai to Dubai, Delhi to Paris...',
+        featuredSectionTitle: 'Featured Flights',
+        destinationSectionTitle: 'Popular Routes',
+        routeName: '/flights',
+      ),
+      const ServiceConfig(
+        type: ServiceType.hotels,
+        icon: Icons.hotel,
+        isAvailable: false,
+        searchPlaceholder: 'e.g. Hotels in Dubai, Luxury resorts...',
+        featuredSectionTitle: 'Featured Hotels',
+        destinationSectionTitle: 'Top Hotel Destinations',
+        routeName: '/hotels',
+      ),
+      const ServiceConfig(
+        type: ServiceType.tours,
+        icon: Icons.tour,
+        isAvailable: true,
+        searchPlaceholder:
+            'e.g. City tours, Adventure tours, Cultural experiences...',
+        featuredSectionTitle: 'Featured Tours',
+        destinationSectionTitle: 'Popular Tour Destinations',
+        routeName: '/tours',
+      ),
+    ];
+  }
+
+  ServiceConfig get _currentServiceConfig =>
+      _serviceConfigs[_selectedServiceIndex];
+
+  Future<void> _loadData() async {
     try {
       setState(() {
         _isLoading = true;
         _errorMessage = null;
       });
 
-      // Load packages from API
-      final packages = await _apiService.getPackages();
+      // Load data based on selected service
+      switch (_currentServiceConfig.type) {
+        case ServiceType.packages:
+          await _loadPackages();
+          break;
+        case ServiceType.tours:
+          await _loadTours();
+          break;
+        case ServiceType.flights:
+          await _loadFlights();
+          break;
+        case ServiceType.hotels:
+          await _loadHotels();
+          break;
+      }
 
-      setState(() {
-        allPackages = packages;
-        // Get first 5 packages as featured packages
-        featuredPackages = packages.take(5).toList();
-        _isLoading = false;
-      });
-
+      _updateFeaturedItemsAndDestinations();
       _animationController.forward();
     } catch (e) {
       setState(() {
@@ -70,8 +275,90 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
   }
 
-  Future<void> _refreshPackages() async {
-    await _loadPackages();
+  Future<void> _loadPackages() async {
+    final packages = await _packageService.getPackages();
+    setState(() {
+      _allPackages = packages;
+      // Get first 5 packages as featured packages
+      // featuredPackages = packages.take(5).toList();
+      _isLoading = false;
+    });
+    _animationController.forward();
+  }
+
+  Future<void> _loadTours() async {
+    final tours = await _tourService.getTours();
+    setState(() {
+      _allTours = tours;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _loadFlights() async {
+    // TODO: Implement flights API call when available
+    setState(() {
+      // allPackages = [];
+      // featuredItems = [];
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _loadHotels() async {
+    // TODO: Implement hotels API call when available
+    setState(() {
+      // allPackages = [];
+      // featuredItems = [];
+      _isLoading = false;
+    });
+  }
+
+  void _updateFeaturedItemsAndDestinations() {
+    List<DisplayableItem> allItems = [];
+    Map<String, List<DisplayableItem>> destinationGroups = {};
+
+    switch (_currentServiceConfig.type) {
+      case ServiceType.packages:
+        allItems = _allPackages.map((p) => PackageDisplayItem(p)).toList();
+        break;
+      case ServiceType.tours:
+        allItems = _allTours.map((t) => TourDisplayItem(t)).toList();
+        break;
+      case ServiceType.flights:
+      case ServiceType.hotels:
+        allItems = []; // Empty for unavailable services
+        break;
+    }
+
+    // Group by destination
+    for (var item in allItems) {
+      String destination = item.locationName;
+      if (!destinationGroups.containsKey(destination)) {
+        destinationGroups[destination] = [];
+      }
+      destinationGroups[destination]!.add(item);
+    }
+
+    setState(() {
+      _currentFeaturedItems = allItems.take(5).toList();
+      _destinationGroups = destinationGroups;
+    });
+  }
+
+  Future<void> _refreshData() async {
+    await _loadData();
+  }
+
+  void _onServiceTabChanged(int index) {
+    if (_selectedServiceIndex != index) {
+      setState(() {
+        _selectedServiceIndex = index;
+        _searchController.clear();
+        _searchQuery = '';
+      });
+
+      // Load data for the new service
+      _loadData();
+    }
   }
 
   @override
@@ -82,12 +369,34 @@ class _DashboardScreenState extends State<DashboardScreen>
     super.dispose();
   }
 
-  void _navigateToPackageDetail(Package package) {
-    Navigator.pushNamed(
-      context,
-      '/package-detail',
-      arguments: {'package': package},
-    );
+  void _navigateToItemDetail(DisplayableItem item) {
+    // Navigate based on service type
+    switch (_currentServiceConfig.type) {
+      case ServiceType.packages:
+        final packageItem = item as PackageDisplayItem;
+        Navigator.pushNamed(
+          context,
+          '/package-detail',
+          arguments: {'package': packageItem.package},
+        );
+        break;
+      case ServiceType.tours:
+        final tourItem = item as TourDisplayItem;
+        Navigator.pushNamed(
+          context,
+          '/tour-detail',
+          arguments: {'tour': tourItem.tour},
+        );
+        break;
+      case ServiceType.flights:
+        // Handle flight selection
+        _showContactDialog();
+        break;
+      case ServiceType.hotels:
+        // Handle hotel selection
+        _showContactDialog();
+        break;
+    }
   }
 
   // Helper method to get responsive values
@@ -299,10 +608,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       return;
     }
 
-    // Navigate to packages screen with search query
+    // Navigate to appropriate screen with search query
     Navigator.pushNamed(
       context,
-      '/packages',
+      _currentServiceConfig.routeName,
       arguments: {'searchQuery': _searchQuery},
     );
   }
@@ -356,7 +665,8 @@ class _DashboardScreenState extends State<DashboardScreen>
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: _refreshPackages,
+              // onPressed: _refreshPackages,
+              onPressed: _refreshData,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryOrange,
                 foregroundColor: Colors.white,
@@ -379,7 +689,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     return Scaffold(
       backgroundColor: AppColors.lightGray,
       body: RefreshIndicator(
-        onRefresh: _refreshPackages,
+        // onRefresh: _refreshPackages,
+        onRefresh: _refreshData,
         color: AppColors.primaryOrange,
         child: CustomScrollView(
           slivers: [
@@ -401,7 +712,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       child: _buildErrorState(),
                     )
                   else
-                    _buildFeaturedPackages(),
+                    _buildFeaturedItems(),
                   _buildQuickActions(),
                   SizedBox(
                       height: isTablet
@@ -538,7 +849,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             child: Column(
               children: [
                 Text(
-                  'Find Your Perfect Trip',
+                  'Find Your Perfect ${_currentServiceConfig.type.displayName}',
                   style: TextStyle(
                     fontSize: isTablet ? 26 : 20,
                     fontWeight: FontWeight.w600,
@@ -547,7 +858,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
                 SizedBox(height: isTablet ? 12 : 8),
                 Text(
-                  'Search across our comprehensive travel services',
+                  'Search across our comprehensive ${_currentServiceConfig.type.displayName.toLowerCase()} services',
                   style: TextStyle(
                     color: AppColors.mediumGray,
                     fontSize: isTablet ? 16 : 14,
@@ -566,47 +877,28 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildServiceTabs() {
-    final services = [
-      {'icon': Icons.route, 'title': 'Packages', 'available': true},
-      {'icon': Icons.flight, 'title': 'Flights', 'available': false},
-      {'icon': Icons.hotel, 'title': 'Hotels', 'available': false},
-      {'icon': Icons.tour, 'title': 'Tours', 'available': false},
-    ];
-
     return Container(
       decoration: BoxDecoration(
         color: AppColors.lightOrange,
         borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
       ),
       padding: EdgeInsets.all(isTablet ? 6 : 4),
-      child: isTablet
-          ? Row(
-              children: services.asMap().entries.map((entry) {
-                return Expanded(
-                    child: _buildServiceTab(entry.key, entry.value));
-              }).toList(),
-            )
-          : Row(
-              children: services.asMap().entries.map((entry) {
-                return Expanded(
-                    child: _buildServiceTab(entry.key, entry.value));
-              }).toList(),
-            ),
+      child: Row(
+        children: _serviceConfigs.asMap().entries.map((entry) {
+          return Expanded(
+            child: _buildServiceTab(entry.key, entry.value),
+          );
+        }).toList(),
+      ),
     );
   }
 
-  Widget _buildServiceTab(int index, Map<String, dynamic> service) {
+  Widget _buildServiceTab(int index, ServiceConfig config) {
     final isSelected = _selectedServiceIndex == index;
-    final isAvailable = service['available'] as bool;
+    final isAvailable = config.isAvailable;
 
     return GestureDetector(
-      onTap: isAvailable
-          ? () {
-              setState(() {
-                _selectedServiceIndex = index;
-              });
-            }
-          : null,
+      onTap: isAvailable ? () => _onServiceTabChanged(index) : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.symmetric(vertical: isTablet ? 16 : 12),
@@ -626,7 +918,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         child: Column(
           children: [
             Icon(
-              service['icon'] as IconData,
+              config.icon,
               color: isSelected
                   ? Colors.white
                   : isAvailable
@@ -636,7 +928,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             ),
             SizedBox(height: isTablet ? 6 : 4),
             Text(
-              service['title'] as String,
+              config.type.displayName,
               style: TextStyle(
                 color: isSelected
                     ? Colors.white
@@ -683,7 +975,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'e.g. Dubai, Adventure tours, Beach holidays...',
+                hintText: _currentServiceConfig.searchPlaceholder,
                 hintStyle: TextStyle(
                     color: AppColors.mediumGray, fontSize: isTablet ? 16 : 14),
                 border: InputBorder.none,
@@ -769,48 +1061,37 @@ class _DashboardScreenState extends State<DashboardScreen>
             childAspectRatio: isTablet ? 1.1 : 1.2,
             crossAxisSpacing: isTablet ? 20 : 16,
             mainAxisSpacing: isTablet ? 20 : 16,
-            children: [
-              _buildServiceCard(
-                icon: Icons.route,
-                title: 'Travel Packages',
-                description: 'Complete tour packages with accommodation',
-                available: true,
-                stat: '${allPackages.length}+',
-                statLabel: 'Packages',
-                onTap: () => Navigator.pushNamed(context, '/packages'),
-              ),
-              _buildServiceCard(
-                icon: Icons.flight,
-                title: 'Flight Booking',
-                description: 'Book flights at competitive prices',
-                available: false,
-                stat: 'Soon',
-                statLabel: 'Airlines',
-                onTap: () => _showContactDialog(),
-              ),
-              _buildServiceCard(
-                icon: Icons.hotel,
-                title: 'Hotel Reservations',
-                description: 'Find hotels with exclusive discounts',
-                available: false,
-                stat: 'Soon',
-                statLabel: 'Properties',
-                onTap: () => _showContactDialog(),
-              ),
-              _buildServiceCard(
-                icon: Icons.tour,
-                title: 'Custom Tours',
-                description: 'Personalized tour experiences',
-                available: false,
-                stat: 'Soon',
-                statLabel: 'Experiences',
-                onTap: () => _showContactDialog(),
-              ),
-            ],
+            children: _serviceConfigs.map((config) {
+              return _buildServiceCard(
+                icon: config.icon,
+                title: config.type.title,
+                description: config.type.description,
+                available: config.isAvailable,
+                stat: config.isAvailable
+                    ? '${_getItemCountForService(config.type)}+'
+                    : 'Soon',
+                statLabel: config.type.displayName,
+                onTap: config.isAvailable
+                    ? () => Navigator.pushNamed(context, config.routeName)
+                    : () => _showContactDialog(),
+              );
+            }).toList(),
           ),
         ],
       ),
     );
+  }
+
+  int _getItemCountForService(ServiceType serviceType) {
+    switch (serviceType) {
+      case ServiceType.packages:
+        return _allPackages.length;
+      case ServiceType.tours:
+        return _allTours.length;
+      case ServiceType.flights:
+      case ServiceType.hotels:
+        return 0;
+    }
   }
 
   Widget _buildServiceCard({
@@ -948,19 +1229,9 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildPopularDestinations() {
-    // Get unique destinations from packages
-    Map<String, List<Package>> destinationGroups = {};
-    for (var package in allPackages) {
-      String destination = package.location.name;
-      if (!destinationGroups.containsKey(destination)) {
-        destinationGroups[destination] = [];
-      }
-      destinationGroups[destination]!.add(package);
-    }
-
-    // Convert to list and take top 4 destinations by package count
-    List<MapEntry<String, List<Package>>> destinations =
-        destinationGroups.entries.toList();
+    // Convert to list and take top 4 destinations by item count
+    List<MapEntry<String, List<DisplayableItem>>> destinations =
+        _destinationGroups.entries.toList();
     destinations.sort((a, b) => b.value.length.compareTo(a.value.length));
     destinations = destinations.take(4).toList();
 
@@ -978,7 +1249,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Popular Destinations',
+                _currentServiceConfig.destinationSectionTitle,
                 style: TextStyle(
                   fontSize: isTablet ? 26 : 20,
                   fontWeight: FontWeight.w600,
@@ -996,14 +1267,17 @@ class _DashboardScreenState extends State<DashboardScreen>
               itemBuilder: (context, index) {
                 final entry = destinations[index];
                 final destinationName = entry.key;
-                final packageCount = entry.value.length;
-                final firstPackage = entry.value.first;
+                final itemCount = entry.value.length;
+                final firstItem = entry.value.first;
 
                 return GestureDetector(
                   onTap: () => Navigator.pushNamed(
                     context,
-                    '/packages',
-                    arguments: {'searchQuery': destinationName},
+                    _currentServiceConfig.routeName,
+                    arguments: {
+                      'searchQuery': destinationName,
+                      'serviceType': _currentServiceConfig.type.name,
+                    },
                   ),
                   child: Container(
                     width: isTablet ? 180 : 140,
@@ -1025,7 +1299,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           // Background Image
                           Positioned.fill(
                             child: Image.network(
-                              firstPackage.location.imageUrl,
+                              firstItem.locationImageUrl,
                               fit: BoxFit.cover,
                               loadingBuilder:
                                   (context, child, loadingProgress) {
@@ -1117,7 +1391,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                                 SizedBox(height: isTablet ? 6 : 4),
                                 Text(
-                                  '$packageCount package${packageCount > 1 ? 's' : ''}',
+                                  '$itemCount ${_currentServiceConfig.type.displayName.toLowerCase()}${itemCount > 1 ? '' : ''}',
                                   style: TextStyle(
                                     color: Colors.white.withValues(alpha: 0.9),
                                     fontSize: isTablet ? 14 : 12,
@@ -1147,9 +1421,9 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildFeaturedPackages() {
-    if (featuredPackages.isEmpty) {
-      return const SizedBox.shrink(); // Don't show section if no packages
+  Widget _buildFeaturedItems() {
+    if (_currentFeaturedItems.isEmpty) {
+      return const SizedBox.shrink(); // Don't show section if no items
     }
 
     return Container(
@@ -1162,7 +1436,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Featured Packages',
+                _currentServiceConfig.featuredSectionTitle,
                 style: TextStyle(
                   fontSize: isTablet ? 26 : 20,
                   fontWeight: FontWeight.w600,
@@ -1170,7 +1444,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
               ),
               TextButton(
-                onPressed: () => Navigator.pushNamed(context, '/packages'),
+                onPressed: () => Navigator.pushNamed(
+                    context, _currentServiceConfig.routeName),
                 child: Text(
                   'View All',
                   style: TextStyle(
@@ -1187,9 +1462,9 @@ class _DashboardScreenState extends State<DashboardScreen>
             height: isTablet ? 340 : 280,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: featuredPackages.length,
+              itemCount: _currentFeaturedItems.length,
               itemBuilder: (context, index) {
-                return _buildPackageCard(featuredPackages[index]);
+                return _buildItemCard(_currentFeaturedItems[index]);
               },
             ),
           ),
@@ -1198,7 +1473,25 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildPackageCard(Package package) {
+  Widget _buildItemCard(DisplayableItem item) {
+    // Get service-specific labels
+    String actionButtonText;
+
+    switch (_currentServiceConfig.type) {
+      case ServiceType.packages:
+        actionButtonText = 'Book Now';
+        break;
+      case ServiceType.tours:
+        actionButtonText = 'Book Tour';
+        break;
+      case ServiceType.flights:
+        actionButtonText = 'Book Flight';
+        break;
+      case ServiceType.hotels:
+        actionButtonText = 'Book Hotel';
+        break;
+    }
+
     return Container(
       width: isTablet ? 280 : 240,
       margin: EdgeInsets.only(right: isTablet ? 20 : 16),
@@ -1235,7 +1528,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     topRight: Radius.circular(isTablet ? 20 : 16),
                   ),
                   child: Image.network(
-                    package.imageUrl,
+                    item.imageUrl,
                     width: double.infinity,
                     height: double.infinity,
                     fit: BoxFit.cover,
@@ -1285,7 +1578,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
               ),
               // Tag Badge
-              if (package.tag.isNotEmpty)
+              if (item.tag.isNotEmpty)
                 Positioned(
                   top: isTablet ? 12 : 8,
                   left: isTablet ? 12 : 8,
@@ -1294,8 +1587,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         horizontal: isTablet ? 8 : 6,
                         vertical: isTablet ? 3 : 2),
                     decoration: BoxDecoration(
-                      color:
-                          package.tag == 'Popular' ? Colors.red : Colors.blue,
+                      color: item.tag == 'Popular' ? Colors.red : Colors.blue,
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
@@ -1306,7 +1598,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ],
                     ),
                     child: Text(
-                      package.tag,
+                      item.tag,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: isTablet ? 11 : 9,
@@ -1334,7 +1626,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ],
                   ),
                   child: Text(
-                    package.availability,
+                    item.availability,
                     style: TextStyle(
                       color: const Color(0xFF059669),
                       fontSize: isTablet ? 11 : 9,
@@ -1364,7 +1656,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ),
                       SizedBox(width: isTablet ? 4 : 2),
                       Text(
-                        package.location.name,
+                        item.locationName,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: isTablet ? 12 : 9,
@@ -1406,13 +1698,15 @@ class _DashboardScreenState extends State<DashboardScreen>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              Icons.access_time,
+                              _currentServiceConfig.type == ServiceType.tours
+                                  ? Icons.schedule
+                                  : Icons.access_time,
                               size: isTablet ? 12 : 8,
                               color: AppColors.primaryOrange,
                             ),
                             SizedBox(width: isTablet ? 4 : 2),
                             Text(
-                              '${package.duration} days',
+                              item.durationLabel,
                               style: TextStyle(
                                 color: AppColors.primaryOrange,
                                 fontSize: isTablet ? 12 : 9,
@@ -1439,7 +1733,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                             ),
                           ),
                           Text(
-                            ' (${package.review})',
+                            ' (${item.review})',
                             style: TextStyle(
                               color: AppColors.mediumGray,
                               fontSize: isTablet ? 12 : 9,
@@ -1451,7 +1745,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                   SizedBox(height: isTablet ? 10 : 6),
                   Text(
-                    package.name,
+                    item.name,
                     style: TextStyle(
                       fontSize: isTablet ? 16 : 13,
                       fontWeight: FontWeight.w600,
@@ -1469,7 +1763,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '${package.currency} ${package.price}',
+                            '${item.currency} ${item.price}',
                             style: TextStyle(
                               fontSize: isTablet ? 18 : 14,
                               fontWeight: FontWeight.bold,
@@ -1477,7 +1771,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                             ),
                           ),
                           Text(
-                            '/person',
+                            item.priceLabel,
                             style: TextStyle(
                               fontSize: isTablet ? 12 : 9,
                               color: AppColors.mediumGray,
@@ -1486,7 +1780,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ],
                       ),
                       ElevatedButton(
-                        onPressed: () => _navigateToPackageDetail(package),
+                        onPressed: () => _navigateToItemDetail(item),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryOrange,
                           foregroundColor: Colors.white,
@@ -1501,7 +1795,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           minimumSize: Size(0, isTablet ? 36 : 28),
                         ),
                         child: Text(
-                          'Book Now',
+                          actionButtonText,
                           style: TextStyle(
                             fontSize: isTablet ? 14 : 11,
                             fontWeight: FontWeight.w500,

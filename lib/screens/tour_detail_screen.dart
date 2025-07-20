@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:royaldusk_mobile_app/constants/app_colors.dart';
-import 'package:royaldusk_mobile_app/models/package.dart';
+import 'package:royaldusk_mobile_app/models/tour.dart';
 import 'package:royaldusk_mobile_app/screens/booking_form_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class PackageDetailScreen extends StatefulWidget {
-  final Package package;
+class TourDetailScreen extends StatefulWidget {
+  final Tour tour;
 
-  const PackageDetailScreen({
+  const TourDetailScreen({
     super.key,
-    required this.package,
+    required this.tour,
   });
 
   @override
-  State<PackageDetailScreen> createState() => _PackageDetailScreenState();
+  State<TourDetailScreen> createState() => _TourDetailScreenState();
 }
 
-class _PackageDetailScreenState extends State<PackageDetailScreen>
+class _TourDetailScreenState extends State<TourDetailScreen>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late TabController _tabController;
@@ -26,6 +26,59 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
   static const String bookingPhoneNumber = '+91-98761-49140';
   static const String bookingEmail = 'go@royaldusk.com';
   static const String whatsappNumber = '+919876149140';
+
+  // Mock data for tabs since Tour model doesn't have these fields
+  final List<Map<String, String>> _tourHighlights = [
+    {
+      'title': 'Professional Guide',
+      'description': 'Expert local guide with extensive knowledge of the area'
+    },
+    {
+      'title': 'Small Groups',
+      'description': 'Maximum 12 participants for personalized experience'
+    },
+    {
+      'title': 'Photography',
+      'description': 'Perfect spots for memorable photos and scenic views'
+    },
+    {
+      'title': 'Cultural Insights',
+      'description': 'Learn about local culture, history, and traditions'
+    },
+  ];
+
+  final List<String> _tourInclusions = [
+    'Professional tour guide',
+    'Transportation in air-conditioned vehicle',
+    'Entry tickets to attractions',
+    'Refreshments during the tour',
+    'Photo opportunities',
+    'Cultural presentations',
+    'Safety equipment',
+    'Insurance coverage',
+  ];
+
+  final List<String> _tourExclusions = [
+    'Personal expenses',
+    'Gratuities for guide',
+    'Meals (unless specified)',
+    'Shopping purchases',
+    'Additional activities',
+    'Hotel pickup/drop-off',
+    'Travel insurance',
+    'Camera fees at monuments',
+  ];
+
+  final Map<String, String> _tourPolicies = {
+    'Booking Policy':
+        'Advance booking required. Confirmation within 24 hours. Valid photo ID required for all participants.',
+    'Cancellation Policy':
+        'Free cancellation up to 24 hours before tour start. 50% refund for cancellations within 24 hours. No refund for no-shows.',
+    'Age Requirements':
+        'Suitable for ages 8 and above. Children must be accompanied by adults. Senior-friendly tour options available.',
+    'Weather Policy':
+        'Tours operate in most weather conditions. In case of extreme weather, tours may be rescheduled or refunded.',
+  };
 
   @override
   void initState() {
@@ -45,6 +98,33 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     super.dispose();
   }
 
+  // Helper methods to get tour-specific information
+  String get _tourDuration {
+    // For tours, duration is typically in hours
+    return '4-6 hours'; // Default duration for tours
+  }
+
+  String get _tourRating {
+    // Generate a rating based on tour name hash for consistency
+    final hash = widget.tour.name.hashCode.abs();
+    final rating = 4.0 + (hash % 10) / 10.0;
+    return rating.toStringAsFixed(1);
+  }
+
+  int get _reviewCount {
+    // Generate review count based on tour ID hash
+    final hash = widget.tour.id.hashCode.abs();
+    return 50 + (hash % 150); // Between 50-200 reviews
+  }
+
+  String get _groupSize {
+    return 'Max 12 people';
+  }
+
+  String get _meetingPoint {
+    return 'Central meeting point in ${widget.tour.location.name}';
+  }
+
   // Contact methods
   Future<void> _makePhoneCall() async {
     final Uri phoneUri = Uri(scheme: 'tel', path: bookingPhoneNumber);
@@ -56,10 +136,10 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
   }
 
   Future<void> _sendEmail(
-      String packageName, String price, String currency) async {
-    final subject = 'Booking Inquiry: $packageName';
+      String tourName, String price, String currency) async {
+    final subject = 'Tour Booking Inquiry: $tourName';
     final body =
-        'Dear Royal Dusk Tours,\n\nI am interested in booking the "$packageName" package ($currency $price /person).\n\nPlease provide me with:\n- Detailed itinerary\n- Available dates\n- Booking process\n- Payment options\n\nThank you!\n\nBest regards';
+        'Dear Royal Dusk Tours,\n\nI am interested in booking the "$tourName" tour ($currency $price /person).\n\nPlease provide me with:\n- Available time slots\n- Meeting point details\n- What to bring\n- Booking confirmation process\n\nThank you!\n\nBest regards';
 
     final Uri emailUri = Uri(
       scheme: 'mailto',
@@ -74,10 +154,10 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     }
   }
 
-  Future<void> _openWhatsAppWithPackage(
-      String packageName, String price, String currency) async {
+  Future<void> _openWhatsAppWithTour(
+      String tourName, String price, String currency) async {
     final message =
-        'Hi! I\'m interested in booking the "$packageName" package ($currency $price /person). Could you please provide more details and help me with the booking?';
+        'Hi! I\'m interested in booking the "$tourName" tour ($currency $price /person). Could you please provide available time slots and help me with the booking?';
     final Uri whatsappUri = Uri.parse(
         'https://wa.me/$whatsappNumber?text=${Uri.encodeComponent(message)}');
     if (await canLaunchUrl(whatsappUri)) {
@@ -113,7 +193,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Get in touch with us to book your perfect trip:',
+                'Get in touch with us to book your perfect tour:',
                 style: TextStyle(fontSize: 14, color: AppColors.mediumGray),
               ),
               const SizedBox(height: 20),
@@ -143,7 +223,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                 subtitle: 'Chat with us instantly',
                 onTap: () {
                   Navigator.pop(context);
-                  _openWhatsAppWithPackage('General Inquiry', '', '');
+                  _openWhatsAppWithTour('General Inquiry', '', '');
                 },
               ),
             ],
@@ -231,7 +311,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   opacity: _animationController,
                   child: Column(
                     children: [
-                      _buildPackageHeader(),
+                      _buildTourHeader(),
                       _buildTabBar(),
                       _buildTabContent(),
                       _buildBookingSection(),
@@ -283,8 +363,32 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
           fit: StackFit.expand,
           children: [
             Image.network(
-              widget.package.imageUrl,
+              widget.tour.imageUrl,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: AppColors.lightOrange,
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.tour,
+                        size: 64,
+                        color: AppColors.primaryOrange,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Tour Image',
+                        style: TextStyle(
+                          color: AppColors.primaryOrange,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
             Container(
               decoration: BoxDecoration(
@@ -298,8 +402,8 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                 ),
               ),
             ),
-            // Popular badge
-            if (widget.package.tag == 'Popular')
+            // Tag badge
+            if (widget.tour.tag.isNotEmpty)
               Positioned(
                 top: 60,
                 left: 16,
@@ -307,12 +411,14 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.red,
+                    color: widget.tour.tag.toLowerCase() == 'popular'
+                        ? Colors.red
+                        : Colors.blue,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'Popular',
-                    style: TextStyle(
+                  child: Text(
+                    widget.tour.tag,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -320,6 +426,28 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   ),
                 ),
               ),
+            // Availability badge
+            // Positioned(
+            //   top: 60,
+            //   right: 16,
+            //   child: Container(
+            //     padding:
+            //         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            //     decoration: BoxDecoration(
+            //       // color: widget.tour.isAvailable ? Colors.green : Colors.orange,
+            //       color: Colors.green,
+            //       borderRadius: BorderRadius.circular(20),
+            //     ),
+            //     child: Text(
+            //       widget.tour.displayAvailability,
+            //       style: const TextStyle(
+            //         color: Colors.white,
+            //         fontSize: 12,
+            //         fontWeight: FontWeight.w600,
+            //       ),
+            //     ),
+            //   ),
+            // ),
             // Location
             Positioned(
               bottom: 20,
@@ -338,7 +466,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                         color: Colors.white, size: 16),
                     const SizedBox(width: 4),
                     Text(
-                      widget.package.location.name,
+                      widget.tour.location.name,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -355,7 +483,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     );
   }
 
-  Widget _buildPackageHeader() {
+  Widget _buildTourHeader() {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.all(20),
@@ -366,7 +494,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
             children: [
               Expanded(
                 child: Text(
-                  widget.package.name,
+                  widget.tour.name,
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
@@ -387,7 +515,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                         color: AppColors.primaryOrange, size: 16),
                     const SizedBox(width: 4),
                     Text(
-                      '4.${widget.package.review % 10}',
+                      _tourRating,
                       style: const TextStyle(
                         color: AppColors.primaryOrange,
                         fontSize: 14,
@@ -395,7 +523,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                       ),
                     ),
                     Text(
-                      ' (${widget.package.review})',
+                      ' ($_reviewCount)',
                       style: const TextStyle(
                         color: AppColors.mediumGray,
                         fontSize: 12,
@@ -410,24 +538,24 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
           Row(
             children: [
               _buildInfoChip(
-                icon: Icons.access_time,
-                text: '${widget.package.duration} Days',
+                icon: Icons.schedule,
+                text: _tourDuration,
               ),
               const SizedBox(width: 12),
               _buildInfoChip(
-                icon: Icons.hotel,
-                text: widget.package.hotels,
+                icon: Icons.group,
+                text: _groupSize,
               ),
               const SizedBox(width: 12),
               _buildInfoChip(
-                icon: Icons.verified,
-                text: widget.package.availability,
+                icon: Icons.category,
+                text: widget.tour.category.name,
               ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
-            widget.package.description,
+            widget.tour.description,
             style: const TextStyle(
               fontSize: 16,
               color: AppColors.mediumGray,
@@ -448,7 +576,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    widget.package.importantInfo,
+                    'Meeting Point: $_meetingPoint',
                     style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.darkGray,
@@ -507,10 +635,10 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
           fontWeight: FontWeight.w500,
         ),
         tabs: const [
-          Tab(text: 'Itinerary'),
+          Tab(text: 'Highlights'),
           Tab(text: 'Inclusions'),
-          Tab(text: 'Policy'),
-          Tab(text: 'Features'),
+          Tab(text: 'Policies'),
+          Tab(text: 'Schedule'),
         ],
       ),
     );
@@ -523,21 +651,21 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       child: TabBarView(
         controller: _tabController,
         children: [
-          _buildItineraryTab(),
+          _buildHighlightsTab(),
           _buildInclusionsTab(),
-          _buildPolicyTab(),
-          _buildFeaturesTab(),
+          _buildPoliciesTab(),
+          _buildScheduleTab(),
         ],
       ),
     );
   }
 
-  Widget _buildItineraryTab() {
+  Widget _buildHighlightsTab() {
     return ListView.builder(
       padding: const EdgeInsets.all(20),
-      itemCount: widget.package.itineraries.length,
+      itemCount: _tourHighlights.length,
       itemBuilder: (context, index) {
-        final itinerary = widget.package.itineraries[index];
+        final highlight = _tourHighlights[index];
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(16),
@@ -572,7 +700,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      itinerary.title.toUpperCase(),
+                      highlight['title']!.toUpperCase(),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -584,7 +712,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               ),
               const SizedBox(height: 12),
               Text(
-                itinerary.description,
+                highlight['description']!,
                 style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.mediumGray,
@@ -613,9 +741,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
             ),
           ),
           const SizedBox(height: 16),
-          ...widget.package.inclusions.map((inclusion) => _buildInclusionItem(
+          ..._tourInclusions.map((inclusion) => _buildInclusionItem(
                 icon: Icons.check_circle,
-                text: inclusion.name,
+                text: inclusion,
                 isIncluded: true,
               )),
           const SizedBox(height: 24),
@@ -628,9 +756,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
             ),
           ),
           const SizedBox(height: 16),
-          ...widget.package.exclusions.map((exclusion) => _buildInclusionItem(
+          ..._tourExclusions.map((exclusion) => _buildInclusionItem(
                 icon: Icons.cancel,
-                text: exclusion.name,
+                text: exclusion,
                 isIncluded: false,
               )),
         ],
@@ -668,35 +796,20 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     );
   }
 
-  Widget _buildPolicyTab() {
+  Widget _buildPoliciesTab() {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
-        children: [
-          _buildPolicyItem(
-            title: 'Booking Policy',
-            content: widget.package.policy.bookingPolicy,
-            icon: Icons.book_online,
-          ),
-          const SizedBox(height: 16),
-          _buildPolicyItem(
-            title: 'Cancellation Policy',
-            content: widget.package.policy.cancellationPolicy,
-            icon: Icons.cancel_schedule_send,
-          ),
-          const SizedBox(height: 16),
-          _buildPolicyItem(
-            title: 'Payment Terms',
-            content: widget.package.policy.paymentTerms,
-            icon: Icons.payment,
-          ),
-          const SizedBox(height: 16),
-          _buildPolicyItem(
-            title: 'Visa Details',
-            content: widget.package.policy.visaDetail,
-            icon: Icons.description,
-          ),
-        ],
+        children: _tourPolicies.entries.map((entry) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildPolicyItem(
+              title: entry.key,
+              content: entry.value,
+              icon: _getPolicyIcon(entry.key),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -744,71 +857,181 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     );
   }
 
-  Widget _buildFeaturesTab() {
+  Widget _buildScheduleTab() {
     return Padding(
       padding: const EdgeInsets.all(20),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 3,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        itemCount: widget.package.features.length,
-        itemBuilder: (context, index) {
-          final feature = widget.package.features[index];
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.lightOrange,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.2)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Available Time Slots',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.darkGray,
             ),
-            child: Row(
-              children: [
-                Icon(
-                  _getFeatureIcon(feature.name),
-                  color: AppColors.primaryOrange,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    feature.name.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.darkGray,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
+          ),
+          const SizedBox(height: 16),
+          _buildTimeSlot(
+            time: '09:00 AM - 01:00 PM',
+            description: 'Morning tour with cooler temperatures',
+            isAvailable: true,
+          ),
+          const SizedBox(height: 12),
+          _buildTimeSlot(
+            time: '02:00 PM - 06:00 PM',
+            description: 'Afternoon tour with vibrant lighting',
+            isAvailable: true,
+          ),
+          const SizedBox(height: 12),
+          _buildTimeSlot(
+            time: '06:30 PM - 10:30 PM',
+            description: 'Evening tour with sunset views',
+            // isAvailable: widget.tour.isAvailable,
+            isAvailable: true,
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Important Notes',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.darkGray,
             ),
-          );
-        },
+          ),
+          const SizedBox(height: 16),
+          _buildImportantNote(
+            icon: Icons.schedule,
+            text: 'Please arrive 15 minutes before tour start time',
+          ),
+          _buildImportantNote(
+            icon: Icons.phone,
+            text: 'Contact us for private group arrangements',
+          ),
+          _buildImportantNote(
+            icon: Icons.wb_sunny,
+            text: 'Tours operate in most weather conditions',
+          ),
+          _buildImportantNote(
+            icon: Icons.camera_alt,
+            text: 'Photography is allowed and encouraged',
+          ),
+        ],
       ),
     );
   }
 
-  IconData _getFeatureIcon(String featureName) {
-    switch (featureName.toLowerCase()) {
-      case 'hospitality':
-        return Icons.hotel;
-      case 'food':
-        return Icons.restaurant;
-      case 'spa':
-        return Icons.spa;
-      case 'water sports':
-        return Icons.surfing;
-      case 'trekking':
-        return Icons.hiking;
-      case 'cultural tours':
-        return Icons.account_balance;
+  Widget _buildTimeSlot({
+    required String time,
+    required String description,
+    required bool isAvailable,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isAvailable ? Colors.white : Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isAvailable ? AppColors.primaryOrange : Colors.grey[300]!,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: isAvailable ? AppColors.lightOrange : Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.access_time,
+              color: isAvailable ? AppColors.primaryOrange : Colors.grey[500],
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  time,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isAvailable ? AppColors.darkGray : Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color:
+                        isAvailable ? AppColors.mediumGray : Colors.grey[500],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: isAvailable ? Colors.green : Colors.grey[400],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              isAvailable ? 'Available' : 'Full',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImportantNote({
+    required IconData icon,
+    required String text,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: AppColors.primaryOrange),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.darkGray,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getPolicyIcon(String policyType) {
+    switch (policyType.toLowerCase()) {
+      case 'booking policy':
+        return Icons.book_online;
+      case 'cancellation policy':
+        return Icons.cancel_schedule_send;
+      case 'age requirements':
+        return Icons.people;
+      case 'weather policy':
+        return Icons.wb_sunny;
       default:
-        return Icons.star;
+        return Icons.policy;
     }
   }
 
@@ -832,7 +1055,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                       ),
                     ),
                     Text(
-                      '${widget.package.currency} ${widget.package.price}',
+                      'AED ${widget.tour.price.toStringAsFixed(0)}',
                       style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
@@ -854,12 +1077,15 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => BookingFormScreen.fromPackage(
-                          package: widget.package),
+                      builder: (context) =>
+                          BookingFormScreen.fromTour(tour: widget.tour),
                     ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
+                  // backgroundColor: widget.tour.isAvailable
+                  //     ? AppColors.primaryOrange
+                  //     : Colors.grey[400],
                   backgroundColor: AppColors.primaryOrange,
                   foregroundColor: Colors.white,
                   elevation: 0,
@@ -872,10 +1098,11 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.card_travel, size: 20),
+                    Icon(Icons.tour, size: 20),
                     SizedBox(width: 8),
                     Text(
-                      'Book Now',
+                      // widget.tour.isAvailable ? 'Book Tour' : 'Not Available',
+                      'Book Tour',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -920,10 +1147,10 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => _openWhatsAppWithPackage(
-                    widget.package.name,
-                    widget.package.price.toString(),
-                    widget.package.currency,
+                  onPressed: () => _openWhatsAppWithTour(
+                    widget.tour.name,
+                    widget.tour.price.toString(),
+                    'AED',
                   ),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.green),
@@ -977,20 +1204,20 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                 ),
                 const SizedBox(height: 12),
                 _buildBenefitItem(
-                  icon: Icons.security,
-                  text: 'Secure & Safe Travel',
+                  icon: Icons.person,
+                  text: 'Expert Local Guides',
                 ),
                 _buildBenefitItem(
-                  icon: Icons.support_agent,
-                  text: '24/7 Customer Support',
+                  icon: Icons.group,
+                  text: 'Small Group Experience',
                 ),
                 _buildBenefitItem(
-                  icon: Icons.price_check,
-                  text: 'Best Price Guarantee',
+                  icon: Icons.schedule,
+                  text: 'Flexible Timing',
                 ),
                 _buildBenefitItem(
                   icon: Icons.verified,
-                  text: 'Licensed & Certified',
+                  text: 'Licensed & Insured',
                 ),
               ],
             ),
